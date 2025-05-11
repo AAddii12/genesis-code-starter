@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -68,12 +67,12 @@ const Navigation = () => {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm">
+    <header className="bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="font-bold text-xl text-gray-900 dark:text-white">CONTENT 4 U</span>
+              <span className="font-bold text-xl text-gray-900">CONTENT 4 U</span>
             </Link>
           </div>
           
@@ -83,8 +82,8 @@ const Navigation = () => {
               to="/" 
               className={`text-sm font-medium ${
                 location.pathname === "/" 
-                  ? "text-primary dark:text-primary-foreground" 
-                  : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                  ? "text-primary" 
+                  : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Home
@@ -96,8 +95,8 @@ const Navigation = () => {
                   to="/onboarding" 
                   className={`text-sm font-medium ${
                     location.pathname === "/onboarding" 
-                      ? "text-primary dark:text-primary-foreground" 
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "text-primary" 
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Create Content
@@ -107,8 +106,8 @@ const Navigation = () => {
                   to="/my-content" 
                   className={`text-sm font-medium ${
                     location.pathname === "/my-content" 
-                      ? "text-primary dark:text-primary-foreground" 
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "text-primary" 
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   My Content
@@ -118,8 +117,8 @@ const Navigation = () => {
                   to="/pricing" 
                   className={`text-sm font-medium ${
                     location.pathname === "/pricing" 
-                      ? "text-primary dark:text-primary-foreground" 
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "text-primary" 
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Plans
@@ -129,22 +128,20 @@ const Navigation = () => {
                   to="/about" 
                   className={`text-sm font-medium ${
                     location.pathname === "/about" 
-                      ? "text-primary dark:text-primary-foreground" 
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "text-primary" 
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   About
                 </Link>
 
                 {credits !== null && (
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-full px-3 py-1">
+                  <span className="text-sm font-medium text-gray-600 border border-gray-300 rounded-full px-3 py-1">
                     {credits} credits
                   </span>
                 )}
                 
-                <ThemeToggle />
-                
-                <Button variant="outline" onClick={handleSignOut} className="border-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+                <Button variant="outline" onClick={handleSignOut} className="border-gray-300">
                   Sign Out
                 </Button>
               </>
@@ -154,14 +151,12 @@ const Navigation = () => {
                   to="/about" 
                   className={`text-sm font-medium ${
                     location.pathname === "/about" 
-                      ? "text-primary dark:text-primary-foreground" 
-                      : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                      ? "text-primary" 
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   About
                 </Link>
-                
-                <ThemeToggle />
                 
                 <Button onClick={handleSignIn}>
                   Sign In
@@ -171,11 +166,9 @@ const Navigation = () => {
           </div>
           
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <ThemeToggle />
-            
+          <div className="md:hidden flex items-center">
             <button
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-300 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <span className="sr-only">Open main menu</span>
@@ -195,14 +188,14 @@ const Navigation = () => {
       
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-800">
+        <div className="md:hidden bg-white border-t">
           <div className="pt-2 pb-3 space-y-1">
             <Link 
               to="/" 
               className={`block pl-3 pr-4 py-2 text-base font-medium ${
                 location.pathname === "/" 
                   ? "bg-primary text-white" 
-                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -216,7 +209,7 @@ const Navigation = () => {
                   className={`block pl-3 pr-4 py-2 text-base font-medium ${
                     location.pathname === "/onboarding" 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -228,7 +221,7 @@ const Navigation = () => {
                   className={`block pl-3 pr-4 py-2 text-base font-medium ${
                     location.pathname === "/my-content" 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -240,7 +233,7 @@ const Navigation = () => {
                   className={`block pl-3 pr-4 py-2 text-base font-medium ${
                     location.pathname === "/pricing" 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -252,7 +245,7 @@ const Navigation = () => {
                   className={`block pl-3 pr-4 py-2 text-base font-medium ${
                     location.pathname === "/about" 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -261,14 +254,14 @@ const Navigation = () => {
                 
                 {credits !== null && (
                   <div className="px-3 py-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-full px-3 py-1">
+                    <span className="text-sm font-medium text-gray-600 border border-gray-300 rounded-full px-3 py-1">
                       {credits} credits
                     </span>
                   </div>
                 )}
                 
                 <button
-                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleSignOut();
@@ -284,7 +277,7 @@ const Navigation = () => {
                   className={`block pl-3 pr-4 py-2 text-base font-medium ${
                     location.pathname === "/about" 
                       ? "bg-primary text-white" 
-                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -292,7 +285,7 @@ const Navigation = () => {
                 </Link>
                 
                 <button
-                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleSignIn();

@@ -21,18 +21,18 @@ const Preview = () => {
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#efe1f8] dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-300">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#efe1f8]">
+        <p className="text-gray-700">Loading profile...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] dark:bg-gray-900 font-rubik relative rounded-none">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] font-rubik relative rounded-none">
       <BackgroundDecorations />
 
       <div className="max-w-4xl mx-auto relative z-10">
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800 dark:text-gray-200">Content Preview</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
         
         <ContentPreviewCard
           generatedImage={generatedImage}
