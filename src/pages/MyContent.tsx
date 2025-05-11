@@ -55,6 +55,14 @@ const MyContent = () => {
       title: "Download started",
       description: "Your content is being prepared for download.",
     });
+    
+    // Create a temporary anchor element to trigger the download
+    const link = document.createElement("a");
+    link.href = item.image_url;
+    link.download = `content-${item.id}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleShare = async (item: ContentItem) => {
@@ -104,8 +112,8 @@ const MyContent = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#efe1f8] font-rubik">
-        <div className="animate-pulse text-[#7e69ab] font-medium text-lg">
+      <div className="min-h-screen flex items-center justify-center bg-[#efe1f8] dark:bg-gray-900 font-rubik">
+        <div className="animate-pulse text-[#7e69ab] dark:text-[#c9b4e8] font-medium text-lg">
           Loading your content...
         </div>
       </div>
@@ -113,11 +121,11 @@ const MyContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#efe1f8] py-12 px-4 sm:px-6 lg:px-8 font-rubik relative">
+    <div className="min-h-screen bg-[#efe1f8] dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 font-rubik relative">
       <BackgroundDecorations />
       
       <div className="max-w-6xl mx-auto relative z-10">
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">My Content</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800 dark:text-gray-200">My Content</h1>
         
         {contentItems.length === 0 ? (
           <EmptyState />

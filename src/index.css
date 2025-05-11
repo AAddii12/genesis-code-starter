@@ -98,3 +98,11 @@
     hsla(210, 40%, 98%, 1) 100%
   );
 }
+
+.dark .feature-gradient {
+  background: linear-gradient(
+    180deg,
+    hsla(222, 84%, 5%, 0) 0%,
+    hsla(222, 84%, 5%, 1) 100%
+  );
+}

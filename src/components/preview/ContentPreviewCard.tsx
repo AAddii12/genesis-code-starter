@@ -27,7 +27,7 @@ export const ContentPreviewCard = ({
   saveToMyContent,
 }: ContentPreviewCardProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transition-all hover:shadow-xl">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 transition-all hover:shadow-xl">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
           <PreviewImage generatedImage={generatedImage} />
