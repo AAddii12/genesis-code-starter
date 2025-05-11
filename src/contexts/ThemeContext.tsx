@@ -52,14 +52,12 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentUser);
         
         // Try to get their saved preference
-        const { data } = await supabase
-          .from('user_preferences')
-          .select('theme')
-          .eq('user_id', currentUser.id)
-          .single();
+        const { data, error } = await supabase.rpc('get_user_theme', { 
+          userid: currentUser.id 
+        });
           
-        if (data?.theme) {
-          setTheme(data.theme as Theme);
+        if (!error && data) {
+          setTheme(data as Theme);
         }
       }
     };
@@ -72,14 +70,12 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(session.user);
           
           // Try to get their saved preference
-          const { data } = await supabase
-            .from('user_preferences')
-            .select('theme')
-            .eq('user_id', session.user.id)
-            .single();
+          const { data, error } = await supabase.rpc('get_user_theme', { 
+            userid: session.user.id 
+          });
             
-          if (data?.theme) {
-            setTheme(data.theme as Theme);
+          if (!error && data) {
+            setTheme(data as Theme);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
@@ -95,13 +91,11 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const saveThemePreference = async (selectedTheme: Theme) => {
     if (!user) return;
     
-    const { error } = await supabase
-      .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        theme: selectedTheme,
-        updated_at: new Date().toISOString()
-      });
+    // Use custom RPC function or raw SQL query to avoid type errors with new tables
+    const { error } = await supabase.rpc('set_user_theme', { 
+      userid: user.id,
+      user_theme: selectedTheme
+    });
       
     if (error) {
       console.error("Error saving theme preference:", error);
