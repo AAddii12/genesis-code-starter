@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "@/types";
+
 const Preview = () => {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -14,6 +15,7 @@ const Preview = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [userCredits, setUserCredits] = useState<number | null>(null);
+
   useEffect(() => {
     // Load user profile from session storage
     const storedProfile = sessionStorage.getItem("userProfile");
@@ -27,6 +29,7 @@ const Preview = () => {
     // Check user credits
     checkUserCredits();
   }, [navigate]);
+
   const checkUserCredits = async () => {
     try {
       const {
@@ -48,6 +51,7 @@ const Preview = () => {
       console.error("Error checking credits:", error);
     }
   };
+
   const generateContent = async () => {
     if (!userProfile) return;
     try {
@@ -97,6 +101,7 @@ const Preview = () => {
       setIsGenerating(false);
     }
   };
+
   const deductCredit = async () => {
     try {
       const {
@@ -119,6 +124,7 @@ const Preview = () => {
       console.error("Error deducting credit:", error);
     }
   };
+
   const saveToMyContent = async () => {
     if (!generatedImage || !caption) {
       toast({
@@ -159,6 +165,7 @@ const Preview = () => {
       setIsLoading(false);
     }
   };
+
   const downloadContent = () => {
     // In a real implementation, this would create a PNG or PDF for download
     toast({
@@ -166,37 +173,78 @@ const Preview = () => {
       description: "Your content is being prepared for download."
     });
   };
+
   if (!userProfile) {
     return <div className="min-h-screen flex items-center justify-center">
         <p>Loading profile...</p>
       </div>;
   }
-  return <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] rounded-none">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">Content Preview</h1>
+
+  return (
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] font-rubik relative rounded-none">
+      {/* Abstract background shapes */}
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute top-10 left-10 w-96 h-96 bg-[#e9d8f4] rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#f1e2fa] rounded-full blur-3xl opacity-60"></div>
+        <div className="absolute bottom-40 left-1/4 w-80 h-80 bg-[#e5d8ff] rounded-full blur-3xl opacity-40"></div>
+      </div>
+
+      <div className="max-w-4xl mx-auto relative z-10">
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
         
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transition-all hover:shadow-xl">
           <div className="flex flex-col md:flex-row gap-8">
             <div className="flex-1">
-              {generatedImage ? <img src={generatedImage} alt="Generated content" className="w-full h-auto rounded-lg object-cover" /> : <div className="w-full aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-400">Image will appear here</p>
-                </div>}
+              {generatedImage ? (
+                <img 
+                  src={generatedImage} 
+                  alt="Generated content" 
+                  className="w-full h-auto rounded-xl object-cover shadow-md" 
+                />
+              ) : (
+                <div className="w-full aspect-square bg-[#f5f0fa] rounded-xl flex items-center justify-center border border-[#e5d8ff] shadow-inner">
+                  <p className="text-gray-400 font-medium">Image will appear here</p>
+                </div>
+              )}
             </div>
             
-            <div className="flex-1">
-              <Textarea placeholder="Your caption will appear here after generation" value={caption} onChange={e => setCaption(e.target.value)} className="min-h-[200px]" />
+            <div className="flex-1 flex flex-col">
+              <Textarea 
+                placeholder="Your caption will appear here after generation" 
+                value={caption} 
+                onChange={e => setCaption(e.target.value)} 
+                className="min-h-[200px] rounded-xl border-[#e5d8ff] focus:border-[#c9b4e8] focus:ring-1 focus:ring-[#c9b4e8] shadow-sm resize-none mb-4 text-gray-700" 
+              />
               
-              <div className="mt-4 flex flex-col space-y-2">
-                {userCredits !== null && <p className="text-sm text-gray-500 mb-2">
-                    Credits remaining: {userCredits}
-                  </p>}
-                <Button onClick={generateContent} disabled={isGenerating} className="w-full text-base bg-[#c1f2b1]/[0.53] text-gray-950 font-semibold">
+              <div className="mt-auto flex flex-col space-y-3">
+                {userCredits !== null && (
+                  <p className="text-sm text-gray-500 mb-1 font-medium">
+                    Credits remaining: <span className="text-[#9b87f5] font-semibold">{userCredits}</span>
+                  </p>
+                )}
+                
+                <Button 
+                  onClick={generateContent} 
+                  disabled={isGenerating} 
+                  className="w-full text-base bg-[#9b87f5] hover:bg-[#7e69ab] text-white font-medium py-6 rounded-xl transition-all transform hover:translate-y-[-2px]"
+                >
                   {isGenerating ? "Generating..." : "Generate Content"}
                 </Button>
-                <Button variant="outline" onClick={downloadContent} disabled={!generatedImage || isLoading} className="w-full">
+                
+                <Button 
+                  variant="outline" 
+                  onClick={downloadContent} 
+                  disabled={!generatedImage || isLoading} 
+                  className="w-full rounded-xl border-[#c9b4e8] hover:bg-[#f5f0fa] text-[#7e69ab] py-5"
+                >
                   Download
                 </Button>
-                <Button onClick={saveToMyContent} disabled={!generatedImage || isLoading} className="w-full font-normal text-base bg-[#bceeab]/[0.53] text-gray-950">
+                
+                <Button 
+                  onClick={saveToMyContent} 
+                  disabled={!generatedImage || isLoading} 
+                  className="w-full font-medium text-base bg-[#e5d8ff] hover:bg-[#d6bcfa] text-[#6e59a5] py-5 rounded-xl"
+                >
                   {isLoading ? "Saving..." : "Save to My Content"}
                 </Button>
               </div>
@@ -204,44 +252,46 @@ const Preview = () => {
           </div>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4 text-center">Your Business Profile</h2>
+        <Card className="rounded-xl shadow-lg hover:shadow-xl transition-all border-[#e5d8ff]">
+          <CardContent className="p-8">
+            <h2 className="text-xl font-semibold mb-6 text-center text-gray-800">Your Business Profile</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Business Name</p>
-                <p>{userProfile.businessName}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Business Name</p>
+                <p className="text-gray-700">{userProfile.businessName}</p>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-gray-500">Business Type</p>
-                <p>{userProfile.businessType}</p>
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Business Type</p>
+                <p className="text-gray-700">{userProfile.businessType}</p>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-gray-500">Target Audience</p>
-                <p>{userProfile.targetAudience}</p>
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Target Audience</p>
+                <p className="text-gray-700">{userProfile.targetAudience}</p>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-gray-500">Business Goal</p>
-                <p>{userProfile.businessGoal}</p>
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Business Goal</p>
+                <p className="text-gray-700">{userProfile.businessGoal}</p>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-gray-500">Color Palette</p>
-                <p>{userProfile.colorPalette}</p>
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Color Palette</p>
+                <p className="text-gray-700">{userProfile.colorPalette}</p>
               </div>
               
-              <div>
-                <p className="text-sm font-medium text-gray-500">Style Vibe</p>
-                <p>{userProfile.styleVibe}</p>
+              <div className="p-3 bg-[#f9f5ff] rounded-lg">
+                <p className="text-sm font-medium text-[#7e69ab] mb-1">Style Vibe</p>
+                <p className="text-gray-700">{userProfile.styleVibe}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Preview;
