@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FormSavingIndicator } from "./FormSavingIndicator";
+import { FormSavingIndicator } from "../FormSavingIndicator";
 
 interface FormFieldProps {
   id: string;
