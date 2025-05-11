@@ -3,21 +3,22 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { UserProfile } from "@/types";
 
 interface BusinessInfoFormProps {
   onNext: (data: {
     businessName: string;
-    businessType: string;
+    businessType: UserProfile['businessType'];
     targetAudience: string;
-    businessGoal: string;
+    businessGoal: UserProfile['businessGoal'];
   }) => void;
 }
 
 export const BusinessInfoForm = ({ onNext }: BusinessInfoFormProps) => {
   const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState("");
+  const [businessType, setBusinessType] = useState<UserProfile['businessType']>("beauty");
   const [targetAudience, setTargetAudience] = useState("");
-  const [businessGoal, setBusinessGoal] = useState("");
+  const [businessGoal, setBusinessGoal] = useState<UserProfile['businessGoal']>("sales");
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +45,7 @@ export const BusinessInfoForm = ({ onNext }: BusinessInfoFormProps) => {
 
       <div className="space-y-2">
         <Label htmlFor="businessType">Business Type</Label>
-        <Select value={businessType} onValueChange={setBusinessType} required>
+        <Select value={businessType} onValueChange={(value: UserProfile['businessType']) => setBusinessType(value)} required>
           <SelectTrigger id="businessType" className="w-full">
             <SelectValue placeholder="Select business type" />
           </SelectTrigger>
@@ -71,7 +72,7 @@ export const BusinessInfoForm = ({ onNext }: BusinessInfoFormProps) => {
 
       <div className="space-y-2">
         <Label htmlFor="businessGoal">Business Goal for Social Media</Label>
-        <Select value={businessGoal} onValueChange={setBusinessGoal} required>
+        <Select value={businessGoal} onValueChange={(value: UserProfile['businessGoal']) => setBusinessGoal(value)} required>
           <SelectTrigger id="businessGoal" className="w-full">
             <SelectValue placeholder="Select business goal" />
           </SelectTrigger>

@@ -3,19 +3,20 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { UserProfile } from "@/types";
 
 interface VisualPreferencesFormProps {
   onBack: () => void;
   onComplete: (data: {
-    colorPalette: string;
-    styleVibe: string;
+    colorPalette: UserProfile['colorPalette'];
+    styleVibe: UserProfile['styleVibe'];
     preferredPlatforms: string[];
   }) => void;
 }
 
 export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesFormProps) => {
-  const [colorPalette, setColorPalette] = useState("");
-  const [styleVibe, setStyleVibe] = useState("");
+  const [colorPalette, setColorPalette] = useState<UserProfile['colorPalette']>("soft pastels");
+  const [styleVibe, setStyleVibe] = useState<UserProfile['styleVibe']>("minimalist");
   const [preferredPlatforms, setPreferredPlatforms] = useState<string[]>([]);
   
   const platforms = [
@@ -46,7 +47,11 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="colorPalette">Preferred Color Palette</Label>
-        <Select value={colorPalette} onValueChange={setColorPalette} required>
+        <Select 
+          value={colorPalette} 
+          onValueChange={(value: UserProfile['colorPalette']) => setColorPalette(value)} 
+          required
+        >
           <SelectTrigger id="colorPalette" className="w-full">
             <SelectValue placeholder="Select color palette" />
           </SelectTrigger>
@@ -61,7 +66,11 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
 
       <div className="space-y-2">
         <Label htmlFor="styleVibe">Style Vibe</Label>
-        <Select value={styleVibe} onValueChange={setStyleVibe} required>
+        <Select 
+          value={styleVibe} 
+          onValueChange={(value: UserProfile['styleVibe']) => setStyleVibe(value)} 
+          required
+        >
           <SelectTrigger id="styleVibe" className="w-full">
             <SelectValue placeholder="Select style vibe" />
           </SelectTrigger>

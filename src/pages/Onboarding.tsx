@@ -16,22 +16,33 @@ const Onboarding = () => {
 
   const handleBusinessInfoSubmit = (data: {
     businessName: string;
-    businessType: string;
+    businessType: UserProfile['businessType'];
     targetAudience: string;
-    businessGoal: string;
+    businessGoal: UserProfile['businessGoal'];
   }) => {
-    setUserProfile(prev => ({ ...prev, ...data }));
+    setUserProfile((prev) => ({ 
+      ...prev, 
+      businessName: data.businessName,
+      businessType: data.businessType,
+      targetAudience: data.targetAudience,
+      businessGoal: data.businessGoal 
+    }));
     setStep(2);
   };
 
   const handleVisualPreferencesSubmit = async (data: {
-    colorPalette: string;
-    styleVibe: string;
+    colorPalette: UserProfile['colorPalette'];
+    styleVibe: UserProfile['styleVibe'];
     preferredPlatforms: string[];
   }) => {
     try {
       setLoading(true);
-      const fullProfile = { ...userProfile, ...data } as UserProfile;
+      const fullProfile = { 
+        ...userProfile, 
+        colorPalette: data.colorPalette,
+        styleVibe: data.styleVibe,
+        preferredPlatforms: data.preferredPlatforms 
+      } as UserProfile;
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
