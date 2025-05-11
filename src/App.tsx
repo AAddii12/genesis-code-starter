@@ -13,6 +13,7 @@ import Pricing from "./pages/Pricing";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import Navigation from "./components/Navigation";
+import PostIdea from "./pages/PostIdea";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/post-idea" element={<PostIdea />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </>
