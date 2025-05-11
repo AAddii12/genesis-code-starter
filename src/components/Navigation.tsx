@@ -59,13 +59,14 @@ const Navigation = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    navigate("/login");
   };
 
   const handleSignIn = () => {
     navigate("/login");
   };
 
+  // Header with content for authenticated and non-authenticated users
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
