@@ -1,18 +1,30 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessInfoForm } from "@/components/onboarding/BusinessInfoForm";
 import { VisualPreferencesForm } from "@/components/onboarding/VisualPreferencesForm";
+import { ProgressIndicator } from "@/components/onboarding/ProgressIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { UserProfile } from "@/types";
 
+const ONBOARDING_STORAGE_KEY = "onboarding_form_data";
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [userProfile, setUserProfile] = useState<Partial<UserProfile>>({});
+  const [userProfile, setUserProfile] = useState<Partial<UserProfile>>(() => {
+    // Try to load saved form data from localStorage
+    const savedData = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+    return savedData ? JSON.parse(savedData) : {};
+  });
   const [loading, setLoading] = useState(false);
+
+  // Save form data to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(userProfile));
+  }, [userProfile]);
 
   const handleBusinessInfoSubmit = (data: {
     businessName: string;
@@ -28,6 +40,8 @@ const Onboarding = () => {
       businessGoal: data.businessGoal 
     }));
     setStep(2);
+    // Scroll to top when changing steps
+    window.scrollTo(0, 0);
   };
 
   const handleVisualPreferencesSubmit = async (data: {
@@ -37,12 +51,16 @@ const Onboarding = () => {
   }) => {
     try {
       setLoading(true);
-      const fullProfile = { 
+      
+      // Update the userProfile state with the final data
+      const fullProfile: UserProfile = { 
         ...userProfile, 
         colorPalette: data.colorPalette,
         styleVibe: data.styleVibe,
         preferredPlatforms: data.preferredPlatforms 
       } as UserProfile;
+      
+      setUserProfile(fullProfile);
       
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -66,6 +84,9 @@ const Onboarding = () => {
       // Store profile in session storage for use across the app
       sessionStorage.setItem("userProfile", JSON.stringify(fullProfile));
       
+      // We've completed the onboarding, clear the temporary storage
+      localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+      
       toast({
         title: "Profile complete!",
         description: "Let's start generating content for your business.",
@@ -84,6 +105,12 @@ const Onboarding = () => {
     }
   };
 
+  const handleBack = () => {
+    setStep(1);
+    // Scroll to top when changing steps
+    window.scrollTo(0, 0);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
@@ -91,14 +118,19 @@ const Onboarding = () => {
           <CardTitle className="text-center">
             {step === 1 ? "Business Information" : "Visual Preferences"}
           </CardTitle>
+          <ProgressIndicator currentStep={step} totalSteps={2} />
         </CardHeader>
         <CardContent>
           {step === 1 ? (
-            <BusinessInfoForm onNext={handleBusinessInfoSubmit} />
+            <BusinessInfoForm 
+              onNext={handleBusinessInfoSubmit} 
+              initialValues={userProfile}
+            />
           ) : (
             <VisualPreferencesForm 
-              onBack={() => setStep(1)} 
-              onComplete={handleVisualPreferencesSubmit} 
+              onBack={handleBack} 
+              onComplete={handleVisualPreferencesSubmit}
+              initialValues={userProfile}
             />
           )}
         </CardContent>

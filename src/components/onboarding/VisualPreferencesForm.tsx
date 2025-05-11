@@ -4,6 +4,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserProfile } from "@/types";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
 
 interface VisualPreferencesFormProps {
   onBack: () => void;
@@ -12,12 +14,29 @@ interface VisualPreferencesFormProps {
     styleVibe: UserProfile['styleVibe'];
     preferredPlatforms: string[];
   }) => void;
+  initialValues?: {
+    colorPalette?: UserProfile['colorPalette'];
+    styleVibe?: UserProfile['styleVibe'];
+    preferredPlatforms?: string[];
+  };
 }
 
-export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesFormProps) => {
-  const [colorPalette, setColorPalette] = useState<UserProfile['colorPalette']>("soft pastels");
-  const [styleVibe, setStyleVibe] = useState<UserProfile['styleVibe']>("minimalist");
-  const [preferredPlatforms, setPreferredPlatforms] = useState<string[]>([]);
+export const VisualPreferencesForm = ({ 
+  onBack, 
+  onComplete, 
+  initialValues = {} 
+}: VisualPreferencesFormProps) => {
+  const [colorPalette, setColorPalette] = useState<UserProfile['colorPalette']>(
+    initialValues.colorPalette || "soft pastels"
+  );
+  const [styleVibe, setStyleVibe] = useState<UserProfile['styleVibe']>(
+    initialValues.styleVibe || "minimalist"
+  );
+  const [preferredPlatforms, setPreferredPlatforms] = useState<string[]>(
+    initialValues.preferredPlatforms || []
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const platforms = [
     { id: "instagram", label: "Instagram" },
@@ -32,10 +51,19 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
         ? current.filter(p => p !== platform)
         : [...current, platform]
     );
+    setError(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
+    if (preferredPlatforms.length === 0) {
+      setError("Please select at least one platform");
+      setIsSubmitting(false);
+      return;
+    }
+    
     onComplete({
       colorPalette,
       styleVibe,
@@ -49,8 +77,7 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
         <Label htmlFor="colorPalette">Preferred Color Palette</Label>
         <Select 
           value={colorPalette} 
-          onValueChange={(value: UserProfile['colorPalette']) => setColorPalette(value)} 
-          required
+          onValueChange={(value: UserProfile['colorPalette']) => setColorPalette(value)}
         >
           <SelectTrigger id="colorPalette" className="w-full">
             <SelectValue placeholder="Select color palette" />
@@ -68,8 +95,7 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
         <Label htmlFor="styleVibe">Style Vibe</Label>
         <Select 
           value={styleVibe} 
-          onValueChange={(value: UserProfile['styleVibe']) => setStyleVibe(value)} 
-          required
+          onValueChange={(value: UserProfile['styleVibe']) => setStyleVibe(value)}
         >
           <SelectTrigger id="styleVibe" className="w-full">
             <SelectValue placeholder="Select style vibe" />
@@ -84,7 +110,14 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
       </div>
 
       <div className="space-y-2">
-        <Label>Preferred Platforms</Label>
+        <div className="flex items-center justify-between">
+          <Label>Preferred Platforms</Label>
+          {error && (
+            <span className="text-xs text-destructive flex items-center">
+              <AlertCircle size={12} className="mr-1" /> {error}
+            </span>
+          )}
+        </div>
         <div className="grid grid-cols-2 gap-2 mt-2">
           {platforms.map(platform => (
             <div className="flex items-center space-x-2" key={platform.id}>
@@ -92,6 +125,7 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
                 id={platform.id} 
                 checked={preferredPlatforms.includes(platform.id)} 
                 onCheckedChange={() => togglePlatform(platform.id)}
+                className={error ? "border-destructive" : ""}
               />
               <label 
                 htmlFor={platform.id}
@@ -105,19 +139,21 @@ export const VisualPreferencesForm = ({ onBack, onComplete }: VisualPreferencesF
       </div>
 
       <div className="flex space-x-4">
-        <button 
+        <Button 
           type="button"
           onClick={onBack}
-          className="flex-1 py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+          variant="outline"
+          className="flex-1"
         >
           Back
-        </button>
-        <button 
+        </Button>
+        <Button 
           type="submit"
-          className="flex-1 py-2 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+          className="flex-1"
+          disabled={isSubmitting}
         >
-          Complete
-        </button>
+          {isSubmitting ? "Processing..." : "Complete"}
+        </Button>
       </div>
     </form>
   );
