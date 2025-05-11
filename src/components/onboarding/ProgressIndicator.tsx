@@ -11,7 +11,7 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   totalSteps,
 }) => {
   return (
-    <div className="mb-6">
+    <div className="mb-8">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium">
           Step {currentStep} of {totalSteps}
@@ -20,9 +20,9 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
           {Math.floor((currentStep / totalSteps) * 100)}%
         </span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="w-full bg-gray-100 rounded-full h-3">
         <div
-          className="bg-primary h-2 rounded-full transition-all duration-300"
+          className="bg-emerald-400 h-3 rounded-full transition-all duration-300"
           style={{ width: `${(currentStep / totalSteps) * 100}%` }}
         ></div>
       </div>

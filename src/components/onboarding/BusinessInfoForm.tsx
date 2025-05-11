@@ -70,9 +70,9 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="businessName" className="flex items-center">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-3">
+        <Label htmlFor="businessName" className="flex items-center text-base font-medium">
           Business Name
           {errors.businessName && (
             <span className="ml-2 text-xs text-destructive flex items-center">
@@ -90,14 +90,14 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
               setErrors(prev => ({ ...prev, businessName: undefined }));
             }
           }}
-          className={errors.businessName ? "border-destructive" : ""}
+          className={`h-12 rounded-xl shadow-sm ${errors.businessName ? "border-destructive" : "border-gray-200"}`}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="businessType">Business Type</Label>
+      <div className="space-y-3">
+        <Label htmlFor="businessType" className="text-base font-medium">Business Type</Label>
         <Select value={businessType} onValueChange={(value: UserProfile['businessType']) => setBusinessType(value)}>
-          <SelectTrigger id="businessType" className="w-full">
+          <SelectTrigger id="businessType" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select business type" />
           </SelectTrigger>
           <SelectContent>
@@ -110,8 +110,8 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="targetAudience" className="flex items-center">
+      <div className="space-y-3">
+        <Label htmlFor="targetAudience" className="flex items-center text-base font-medium">
           Target Audience
           {errors.targetAudience && (
             <span className="ml-2 text-xs text-destructive flex items-center">
@@ -129,14 +129,14 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
               setErrors(prev => ({ ...prev, targetAudience: undefined }));
             }
           }}
-          className={errors.targetAudience ? "border-destructive" : ""}
+          className={`h-12 rounded-xl shadow-sm ${errors.targetAudience ? "border-destructive" : "border-gray-200"}`}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="businessGoal">Business Goal for Social Media</Label>
+      <div className="space-y-3">
+        <Label htmlFor="businessGoal" className="text-base font-medium">Business Goal for Social Media</Label>
         <Select value={businessGoal} onValueChange={(value: UserProfile['businessGoal']) => setBusinessGoal(value)}>
-          <SelectTrigger id="businessGoal" className="w-full">
+          <SelectTrigger id="businessGoal" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select business goal" />
           </SelectTrigger>
           <SelectContent>
@@ -150,7 +150,7 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
 
       <Button 
         type="submit"
-        className="w-full"
+        className="w-full h-12 text-base font-medium bg-emerald-400 hover:bg-emerald-500 rounded-xl mt-4 transition-colors"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Processing..." : "Next"}

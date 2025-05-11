@@ -70,6 +70,7 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
+				rubik: ['Rubik', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

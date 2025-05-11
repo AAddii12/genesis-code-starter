@@ -72,14 +72,14 @@ export const VisualPreferencesForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="colorPalette">Preferred Color Palette</Label>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-3">
+        <Label htmlFor="colorPalette" className="text-base font-medium">Preferred Color Palette</Label>
         <Select 
           value={colorPalette} 
           onValueChange={(value: UserProfile['colorPalette']) => setColorPalette(value)}
         >
-          <SelectTrigger id="colorPalette" className="w-full">
+          <SelectTrigger id="colorPalette" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select color palette" />
           </SelectTrigger>
           <SelectContent>
@@ -91,13 +91,13 @@ export const VisualPreferencesForm = ({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="styleVibe">Style Vibe</Label>
+      <div className="space-y-3">
+        <Label htmlFor="styleVibe" className="text-base font-medium">Style Vibe</Label>
         <Select 
           value={styleVibe} 
           onValueChange={(value: UserProfile['styleVibe']) => setStyleVibe(value)}
         >
-          <SelectTrigger id="styleVibe" className="w-full">
+          <SelectTrigger id="styleVibe" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select style vibe" />
           </SelectTrigger>
           <SelectContent>
@@ -109,18 +109,21 @@ export const VisualPreferencesForm = ({
         </Select>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Preferred Platforms</Label>
+          <Label className="text-base font-medium">Preferred Platforms</Label>
           {error && (
             <span className="text-xs text-destructive flex items-center">
               <AlertCircle size={12} className="mr-1" /> {error}
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="grid grid-cols-2 gap-4 mt-3">
           {platforms.map(platform => (
-            <div className="flex items-center space-x-2" key={platform.id}>
+            <div 
+              className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm" 
+              key={platform.id}
+            >
               <Checkbox 
                 id={platform.id} 
                 checked={preferredPlatforms.includes(platform.id)} 
@@ -129,7 +132,7 @@ export const VisualPreferencesForm = ({
               />
               <label 
                 htmlFor={platform.id}
-                className="text-sm font-medium leading-none cursor-pointer"
+                className="text-base font-medium leading-none cursor-pointer"
               >
                 {platform.label}
               </label>
@@ -138,18 +141,18 @@ export const VisualPreferencesForm = ({
         </div>
       </div>
 
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 pt-2">
         <Button 
           type="button"
           onClick={onBack}
           variant="outline"
-          className="flex-1"
+          className="flex-1 h-12 rounded-xl font-medium text-base border-gray-300"
         >
           Back
         </Button>
         <Button 
           type="submit"
-          className="flex-1"
+          className="flex-1 h-12 rounded-xl font-medium text-base bg-emerald-400 hover:bg-emerald-500"
           disabled={isSubmitting}
         >
           {isSubmitting ? "Processing..." : "Complete"}
