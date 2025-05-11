@@ -25,6 +25,7 @@ export const useImageGeneration = () => {
       });
       
       if (error) {
+        console.error("Error from generate-image function:", error);
         throw new Error(error.message || "Failed to call image generation function");
       }
       

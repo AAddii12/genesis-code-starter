@@ -23,6 +23,7 @@ export const useTextGeneration = () => {
       });
       
       if (error) {
+        console.error("Error from generate-text function:", error);
         throw new Error(error.message || "Failed to call text generation function");
       }
       

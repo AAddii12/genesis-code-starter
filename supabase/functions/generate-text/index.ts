@@ -19,6 +19,7 @@ serve(async (req: Request) => {
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     
     if (!openaiApiKey) {
+      console.error("OPENAI_API_KEY environment variable not found");
       throw new Error("OPENAI_API_KEY not found in environment variables");
     }
 
@@ -50,6 +51,7 @@ serve(async (req: Request) => {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("OpenAI API error response:", errorData);
       throw new Error(`OpenAI API error: ${response.status} ${JSON.stringify(errorData)}`);
     }
 

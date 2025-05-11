@@ -19,6 +19,7 @@ serve(async (req: Request) => {
     const falApiKey = Deno.env.get("FAL_API_KEY");
     
     if (!falApiKey) {
+      console.error("FAL_API_KEY environment variable not found");
       throw new Error("FAL_API_KEY not found in environment variables");
     }
 
@@ -42,6 +43,7 @@ serve(async (req: Request) => {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("FAL API error response:", errorData);
       throw new Error(`FAL API error: ${response.status} ${JSON.stringify(errorData)}`);
     }
 
