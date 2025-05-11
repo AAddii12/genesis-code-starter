@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "@/types";
 import { toast } from "@/hooks/use-toast";
+import { useImageGeneration } from "./useImageGeneration";
+import { useTextGeneration } from "./useTextGeneration";
 
 export const useContentGeneration = (userProfile: UserProfile | null) => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -10,6 +12,9 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
   const [userCredits, setUserCredits] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { generateImage, isGenerating: isGeneratingImage } = useImageGeneration();
+  const { generateText, isGenerating: isGeneratingText } = useTextGeneration();
   
   // Load generated content from session storage
   useEffect(() => {
@@ -38,7 +43,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
         .from("user_credits")
         .select("credits_remaining")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
         
       if (error) throw error;
       
@@ -50,6 +55,11 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
       }
     } catch (error) {
       console.error("Error loading user credits:", error);
+      toast({
+        title: "Failed to load credits",
+        description: "Could not retrieve your available credits",
+        variant: "destructive",
+      });
     }
   };
   
@@ -72,25 +82,35 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     });
     
     try {
-      // Here would be the call to generateImage API
-      // For now, just using a placeholder
-      const savedImage = sessionStorage.getItem("generatedImage");
-      if (savedImage) {
-        setGeneratedImage(savedImage);
+      // Generate image and text in parallel
+      const [imageResult, textResult] = await Promise.all([
+        generateImage(userProfile),
+        generateText(userProfile)
+      ]);
+      
+      if (imageResult) {
+        setGeneratedImage(imageResult);
+      }
+      
+      if (textResult) {
+        setCaption(textResult);
+      }
+      
+      // Check if either succeeded
+      if (imageResult || textResult) {
+        // Deduct a credit if successful
+        if (userCredits !== null) {
+          await deductCredit();
+        }
+        
+        toast({
+          title: "Content created",
+          description: "Your social media content is ready to use!",
+        });
       } else {
-        setGeneratedImage("/placeholder.svg");
+        throw new Error("Failed to generate content");
       }
       
-      // Load the existing caption or generate a new one
-      const existingCaption = sessionStorage.getItem("generatedText");
-      if (existingCaption) {
-        setCaption(existingCaption);
-      }
-      
-      // Deduct a credit if successful
-      if (userCredits !== null) {
-        await deductCredit();
-      }
     } catch (error) {
       console.error("Error generating content:", error);
       toast({
@@ -121,6 +141,11 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
       setUserCredits(newCreditCount);
     } catch (error) {
       console.error("Error deducting credit:", error);
+      toast({
+        title: "Credit error",
+        description: "Failed to update your credits",
+        variant: "destructive",
+      });
     }
   };
   
@@ -159,12 +184,40 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     }
   };
   
-  const downloadContent = () => {
-    // This would be implemented to download the image and caption
-    toast({
-      title: "Download started",
-      description: "Your content is being prepared for download.",
-    });
+  const downloadContent = async () => {
+    if (!generatedImage) return;
+    
+    try {
+      // Create a temporary anchor element
+      const link = document.createElement('a');
+      
+      // Set the href to the image URL
+      link.href = generatedImage;
+      
+      // Set the download attribute to save with a filename
+      link.download = `social-content-${new Date().getTime()}.png`;
+      
+      // Append to the body
+      document.body.appendChild(link);
+      
+      // Trigger the download
+      link.click();
+      
+      // Remove the element
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download started",
+        description: "Your content is being downloaded.",
+      });
+    } catch (error) {
+      console.error("Error downloading content:", error);
+      toast({
+        title: "Download failed",
+        description: "Failed to download your content. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   return {
@@ -172,7 +225,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     caption,
     setCaption,
     userCredits,
-    isGenerating,
+    isGenerating: isGenerating || isGeneratingImage || isGeneratingText,
     isLoading,
     generateContent,
     saveToMyContent,

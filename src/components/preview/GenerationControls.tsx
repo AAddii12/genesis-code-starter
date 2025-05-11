@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Loader2, DownloadCloud, Save } from "lucide-react";
 
 interface GenerationControlsProps {
   userCredits: number | null;
@@ -33,7 +34,12 @@ export const GenerationControls = ({
         disabled={isGenerating} 
         className="w-full text-base bg-[#9b87f5] hover:bg-[#7e69ab] text-white font-medium py-6 rounded-xl transition-all transform hover:translate-y-[-2px]"
       >
-        {isGenerating ? "Generating..." : "Generate Content"}
+        {isGenerating ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Generating...
+          </>
+        ) : "Generate Content"}
       </Button>
       
       <Button 
@@ -42,6 +48,7 @@ export const GenerationControls = ({
         disabled={!generatedImage || isLoading} 
         className="w-full rounded-xl border-[#c9b4e8] hover:bg-[#f5f0fa] text-[#7e69ab] py-5"
       >
+        <DownloadCloud className="mr-2 h-4 w-4" />
         Download
       </Button>
       
@@ -50,7 +57,17 @@ export const GenerationControls = ({
         disabled={!generatedImage || isLoading} 
         className="w-full font-medium text-base bg-[#e5d8ff] hover:bg-[#d6bcfa] text-[#6e59a5] py-5 rounded-xl"
       >
-        {isLoading ? "Saving..." : "Save to My Content"}
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save className="mr-2 h-4 w-4" />
+            Save to My Content
+          </>
+        )}
       </Button>
     </div>
   );
