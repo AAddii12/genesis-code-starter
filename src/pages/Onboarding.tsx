@@ -113,10 +113,10 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-rose-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-rubik">
-      <Card className="w-full max-w-md rounded-2xl shadow-lg border-0">
-        <CardHeader className="pb-2 pt-8">
+      <Card className="w-full max-w-lg rounded-2xl shadow-lg border-0">
+        <CardHeader className="pb-2 pt-8 px-8">
           <CardTitle className="text-center text-2xl font-bold">
-            {step === 1 ? "Business Information" : "Visual Preferences"}
+            {step === 1 ? "Tell us about your business" : "Design your content style"}
           </CardTitle>
           <div className="mt-6">
             <ProgressIndicator currentStep={step} totalSteps={2} />

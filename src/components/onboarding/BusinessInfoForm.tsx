@@ -1,11 +1,18 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { UserProfile } from "@/types";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, HelpCircle } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { FormSavingIndicator } from "./FormSavingIndicator";
 
 interface BusinessInfoFormProps {
   onNext: (data: {
@@ -35,6 +42,28 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
   }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Track if the form has been modified since last save
+  const [isDirty, setIsDirty] = useState(false);
+  
+  // Save to localStorage whenever form values change
+  useEffect(() => {
+    if (businessName || targetAudience || businessType || businessGoal) {
+      setIsDirty(true);
+      const timer = setTimeout(() => {
+        const formData = {
+          businessName,
+          businessType,
+          targetAudience,
+          businessGoal
+        };
+        localStorage.setItem("onboarding_form_data", JSON.stringify(formData));
+        setIsDirty(false);
+      }, 700);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [businessName, businessType, targetAudience, businessGoal]);
 
   const validateForm = () => {
     const newErrors: {
@@ -69,17 +98,33 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
     setIsSubmitting(false);
   };
 
+  // Extended business type options
+  const businessTypes = [
+    { value: "beauty", label: "Beauty & Wellness" },
+    { value: "food", label: "Food & Beverages" },
+    { value: "coaching", label: "Coaching & Consulting" },
+    { value: "handmade", label: "Handmade & Crafts" },
+    { value: "fashion", label: "Fashion & Apparel" },
+    { value: "tech", label: "Technology" },
+    { value: "education", label: "Education" },
+    { value: "fitness", label: "Fitness & Health" },
+    { value: "other", label: "Other" }
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-3">
-        <Label htmlFor="businessName" className="flex items-center text-base font-medium">
-          Business Name
-          {errors.businessName && (
-            <span className="ml-2 text-xs text-destructive flex items-center">
-              <AlertCircle size={12} className="mr-1" /> {errors.businessName}
-            </span>
-          )}
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="businessName" className="flex items-center text-base font-medium">
+            Business Name
+            {errors.businessName && (
+              <span className="ml-2 text-xs text-destructive flex items-center">
+                <AlertCircle size={12} className="mr-1" /> {errors.businessName}
+              </span>
+            )}
+          </Label>
+          <FormSavingIndicator isDirty={isDirty} className="mr-1" />
+        </div>
         <Input
           id="businessName"
           placeholder="Enter your business name"
@@ -95,30 +140,52 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="businessType" className="text-base font-medium">Business Type</Label>
+        <div className="flex items-center">
+          <Label htmlFor="businessType" className="text-base font-medium">Business Type</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Selecting your business type helps us tailor content to your specific industry.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Select value={businessType} onValueChange={(value: UserProfile['businessType']) => setBusinessType(value)}>
           <SelectTrigger id="businessType" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select business type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="beauty">Beauty</SelectItem>
-            <SelectItem value="food">Food</SelectItem>
-            <SelectItem value="coaching">Coaching</SelectItem>
-            <SelectItem value="handmade">Handmade</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            {businessTypes.map(type => (
+              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="targetAudience" className="flex items-center text-base font-medium">
-          Target Audience
-          {errors.targetAudience && (
-            <span className="ml-2 text-xs text-destructive flex items-center">
-              <AlertCircle size={12} className="mr-1" /> {errors.targetAudience}
-            </span>
-          )}
-        </Label>
+        <div className="flex items-center">
+          <Label htmlFor="targetAudience" className="flex items-center text-base font-medium">
+            Target Audience
+            {errors.targetAudience && (
+              <span className="ml-2 text-xs text-destructive flex items-center">
+                <AlertCircle size={12} className="mr-1" /> {errors.targetAudience}
+              </span>
+            )}
+          </Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Describe your ideal customers (e.g., "women 25-40 interested in fitness" or "small business owners")</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Input
           id="targetAudience"
           placeholder="Describe your target audience"
@@ -134,15 +201,27 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="businessGoal" className="text-base font-medium">Business Goal for Social Media</Label>
+        <div className="flex items-center">
+          <Label htmlFor="businessGoal" className="text-base font-medium">Business Goal</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>What do you want to achieve with your social media content?</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Select value={businessGoal} onValueChange={(value: UserProfile['businessGoal']) => setBusinessGoal(value)}>
           <SelectTrigger id="businessGoal" className="h-12 rounded-xl shadow-sm border-gray-200">
             <SelectValue placeholder="Select business goal" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="sales">Sales</SelectItem>
-            <SelectItem value="visibility">Visibility</SelectItem>
-            <SelectItem value="community">Community</SelectItem>
+            <SelectItem value="sales">Increase Sales</SelectItem>
+            <SelectItem value="visibility">Brand Visibility</SelectItem>
+            <SelectItem value="community">Build Community</SelectItem>
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>

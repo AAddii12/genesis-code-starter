@@ -1,11 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserProfile } from "@/types";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, HelpCircle } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { VisualPreviewSection } from "./VisualPreviewSection";
+import { FormSavingIndicator } from "./FormSavingIndicator";
 
 interface VisualPreferencesFormProps {
   onBack: () => void;
@@ -15,6 +23,7 @@ interface VisualPreferencesFormProps {
     preferredPlatforms: string[];
   }) => void;
   initialValues?: {
+    businessType?: UserProfile['businessType'];
     colorPalette?: UserProfile['colorPalette'];
     styleVibe?: UserProfile['styleVibe'];
     preferredPlatforms?: string[];
@@ -37,12 +46,35 @@ export const VisualPreferencesForm = ({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
+  
+  // Save to localStorage whenever form values change
+  useEffect(() => {
+    if (colorPalette || styleVibe || preferredPlatforms.length > 0) {
+      setIsDirty(true);
+      const timer = setTimeout(() => {
+        const currentData = JSON.parse(localStorage.getItem("onboarding_form_data") || "{}");
+        const updatedData = {
+          ...currentData,
+          colorPalette,
+          styleVibe,
+          preferredPlatforms
+        };
+        localStorage.setItem("onboarding_form_data", JSON.stringify(updatedData));
+        setIsDirty(false);
+      }, 700);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [colorPalette, styleVibe, preferredPlatforms]);
   
   const platforms = [
     { id: "instagram", label: "Instagram" },
     { id: "facebook", label: "Facebook" },
     { id: "whatsapp", label: "WhatsApp" },
     { id: "tiktok", label: "TikTok" },
+    { id: "pinterest", label: "Pinterest" },
+    { id: "linkedin", label: "LinkedIn" },
   ];
 
   const togglePlatform = (platform: string) => {
@@ -74,7 +106,22 @@ export const VisualPreferencesForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-3">
-        <Label htmlFor="colorPalette" className="text-base font-medium">Preferred Color Palette</Label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Label htmlFor="colorPalette" className="text-base font-medium">Color Palette</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select a color scheme that matches your brand personality</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <FormSavingIndicator isDirty={isDirty} />
+        </div>
         <Select 
           value={colorPalette} 
           onValueChange={(value: UserProfile['colorPalette']) => setColorPalette(value)}
@@ -92,7 +139,19 @@ export const VisualPreferencesForm = ({
       </div>
 
       <div className="space-y-3">
-        <Label htmlFor="styleVibe" className="text-base font-medium">Style Vibe</Label>
+        <div className="flex items-center">
+          <Label htmlFor="styleVibe" className="text-base font-medium">Style Vibe</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Choose a style that reflects your brand's personality</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Select 
           value={styleVibe} 
           onValueChange={(value: UserProfile['styleVibe']) => setStyleVibe(value)}
@@ -108,20 +167,42 @@ export const VisualPreferencesForm = ({
           </SelectContent>
         </Select>
       </div>
+      
+      <VisualPreviewSection 
+        colorPalette={colorPalette} 
+        styleVibe={styleVibe}
+        businessType={initialValues.businessType}
+      />
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label className="text-base font-medium">Preferred Platforms</Label>
+          <div className="flex items-center">
+            <Label className="text-base font-medium">Preferred Platforms</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-4 w-4 ml-2 text-gray-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select where you want to publish your content</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           {error && (
             <span className="text-xs text-destructive flex items-center">
               <AlertCircle size={12} className="mr-1" /> {error}
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
           {platforms.map(platform => (
             <div 
-              className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200 shadow-sm" 
+              className={`flex items-center space-x-3 p-3 bg-white rounded-lg border shadow-sm transition-colors ${
+                preferredPlatforms.includes(platform.id) 
+                  ? 'border-emerald-300 bg-emerald-50' 
+                  : 'border-gray-200'
+              }`} 
               key={platform.id}
             >
               <Checkbox 
