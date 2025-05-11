@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Download, Share, Trash } from "lucide-react";
+import { BackgroundDecorations } from "@/components/preview/BackgroundDecorations";
+import { ContentCard } from "@/components/my-content/ContentCard";
+import { EmptyState } from "@/components/my-content/EmptyState";
 
 interface ContentItem {
   id: string;
@@ -51,7 +51,6 @@ const MyContent = () => {
   };
 
   const handleDownload = (item: ContentItem) => {
-    // Implement download functionality
     toast({
       title: "Download started",
       description: "Your content is being prepared for download.",
@@ -59,7 +58,6 @@ const MyContent = () => {
   };
 
   const handleShare = async (item: ContentItem) => {
-    // Simple share implementation
     try {
       if (navigator.share) {
         await navigator.share({
@@ -68,7 +66,6 @@ const MyContent = () => {
           url: window.location.href,
         });
       } else {
-        // Fallback for browsers that don't support the Web Share API
         navigator.clipboard.writeText(item.caption);
         toast({
           title: "Caption copied to clipboard",
@@ -107,66 +104,35 @@ const MyContent = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading your content...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#efe1f8] font-rubik">
+        <div className="animate-pulse text-[#7e69ab] font-medium text-lg">
+          Loading your content...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">My Content</h1>
+    <div className="min-h-screen bg-[#efe1f8] py-12 px-4 sm:px-6 lg:px-8 font-rubik relative">
+      <BackgroundDecorations />
+      
+      <div className="max-w-6xl mx-auto relative z-10">
+        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">My Content</h1>
         
         {contentItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-500">You haven't saved any content yet.</p>
-            <Button onClick={() => window.location.href = "/preview"} className="mt-4">
-              Create Content
-            </Button>
-          </div>
+          <EmptyState />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {contentItems.map(item => (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="aspect-square overflow-hidden">
-                  <img 
-                    src={item.image_url} 
-                    alt="Content" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <p className="text-sm line-clamp-2 mb-4">{item.caption}</p>
-                  
-                  <div className="flex justify-between">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDownload(item)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      Download
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleShare(item)}
-                    >
-                      <Share className="h-4 w-4 mr-1" />
-                      Share
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <ContentCard
+                key={item.id}
+                id={item.id}
+                imageUrl={item.image_url}
+                caption={item.caption}
+                onDownload={() => handleDownload(item)}
+                onShare={() => handleShare(item)}
+                onDelete={() => handleDelete(item.id)}
+              />
             ))}
           </div>
         )}
