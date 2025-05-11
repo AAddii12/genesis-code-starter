@@ -1,60 +1,62 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type Theme = "light" | "dark";
+type Theme = "light" | "dark" | "system";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    // Check for saved preference in localStorage
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    if (savedTheme) return savedTheme;
-    
-    // Otherwise check system preference
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-    
-    return "light";
-  });
-  
+interface ThemeProviderProps {
+  children: ReactNode;
+  defaultTheme?: Theme;
+}
+
+const getSystemTheme = (): "light" | "dark" => {
+  if (typeof window !== "undefined" && window.matchMedia) {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  return "light";
+};
+
+export const ThemeProvider = ({
+  children,
+  defaultTheme = "system",
+}: ThemeProviderProps) => {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [user, setUser] = useState<any>(null);
 
+  // Apply theme to document
   useEffect(() => {
-    // Apply theme class to document
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (theme === "system") {
+      const systemTheme = getSystemTheme();
+      root.classList.add(systemTheme);
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.add(theme);
     }
-    
-    // Save to localStorage
-    localStorage.setItem("theme", theme);
-    
-    // If authenticated, save to user profile
-    if (user) {
-      saveThemePreference(theme);
-    }
-  }, [theme, user]);
-  
-  // Get current user and set theme from profile if available
+  }, [theme]);
+
+  // Check for user and load their theme preference
   useEffect(() => {
-    const getCurrentUser = async () => {
+    const loadUserTheme = async () => {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
       if (currentUser) {
         setUser(currentUser);
         
-        // Try to get their saved preference
+        // Try to get their saved preference using raw query to avoid type errors
         const { data, error } = await supabase.rpc('get_user_theme', { 
           userid: currentUser.id 
-        });
+        }) as { data: string | null, error: any };
           
         if (!error && data) {
           setTheme(data as Theme);
@@ -62,58 +64,62 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
     
-    getCurrentUser();
+    loadUserTheme();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && event === 'SIGNED_IN') {
+        if (session.user) {
           setUser(session.user);
           
-          // Try to get their saved preference
+          // Try to get their saved preference using raw query to avoid type errors
           const { data, error } = await supabase.rpc('get_user_theme', { 
             userid: session.user.id 
-          });
+          }) as { data: string | null, error: any };
             
           if (!error && data) {
             setTheme(data as Theme);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
+          // Reset to system theme or load from localStorage on sign out
+          const savedTheme = localStorage.getItem("theme") as Theme;
+          setTheme(savedTheme || "system");
         }
       }
-    );
+    });
     
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
+  // Save theme preference when it changes
   const saveThemePreference = async (selectedTheme: Theme) => {
     if (!user) return;
     
-    // Use custom RPC function or raw SQL query to avoid type errors with new tables
+    // Use custom RPC function to avoid type errors with new tables
     const { error } = await supabase.rpc('set_user_theme', { 
       userid: user.id,
       user_theme: selectedTheme
-    });
+    }) as { error: any };
       
     if (error) {
       console.error("Error saving theme preference:", error);
     }
   };
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === "light" ? "dark" : "light");
-  };
-
-  const value = {
-    theme,
-    toggleTheme,
-    setTheme
+  // Update theme and save preference
+  const handleThemeChange = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+    if (user) {
+      saveThemePreference(newTheme);
+    }
   };
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ theme, setTheme: handleThemeChange }}>
       {children}
     </ThemeContext.Provider>
   );

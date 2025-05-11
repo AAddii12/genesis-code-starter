@@ -1,11 +1,11 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UserProfile } from "@/types";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, HelpCircle } from "lucide-react";
+import { AlertCircle, HelpCircle, Loader2 } from "lucide-react";
 import { 
   Tooltip,
   TooltipContent,
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/tooltip";
 import { VisualPreviewSection } from "./VisualPreviewSection";
 import { FormSavingIndicator } from "./FormSavingIndicator";
+import { useTextGeneration } from "@/hooks/useTextGeneration";
+import { toast } from "@/hooks/use-toast";
 
 interface VisualPreferencesFormProps {
   onBack: () => void;
@@ -35,6 +37,8 @@ export const VisualPreferencesForm = ({
   onComplete, 
   initialValues = {} 
 }: VisualPreferencesFormProps) => {
+  const navigate = useNavigate();
+  const { generateText, isGenerating } = useTextGeneration();
   const [colorPalette, setColorPalette] = useState<UserProfile['colorPalette']>(
     initialValues.colorPalette || "soft pastels"
   );
@@ -86,7 +90,7 @@ export const VisualPreferencesForm = ({
     setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
@@ -96,11 +100,45 @@ export const VisualPreferencesForm = ({
       return;
     }
     
-    onComplete({
-      colorPalette,
-      styleVibe,
-      preferredPlatforms
-    });
+    try {
+      // Collect form data first
+      const formData = {
+        colorPalette,
+        styleVibe,
+        preferredPlatforms
+      };
+      
+      // Call the onComplete prop to save the form data
+      await onComplete(formData);
+      
+      // Get the complete user profile from sessionStorage
+      const userProfileJson = sessionStorage.getItem("userProfile");
+      if (!userProfileJson) {
+        throw new Error("User profile not found");
+      }
+      
+      const userProfile = JSON.parse(userProfileJson) as UserProfile;
+      
+      // Show toast message
+      toast({
+        title: "Generating content",
+        description: "Creating personalized content for your business...",
+      });
+      
+      // Generate the marketing caption
+      await generateText(userProfile);
+      
+      // Navigate to the preview page
+      navigate("/preview");
+    } catch (error) {
+      console.error("Error during form submission:", error);
+      toast({
+        title: "An error occurred",
+        description: "Failed to process your request. Please try again.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -228,15 +266,23 @@ export const VisualPreferencesForm = ({
           onClick={onBack}
           variant="outline"
           className="flex-1 h-12 rounded-xl font-medium text-base border-gray-300"
+          disabled={isSubmitting || isGenerating}
         >
           Back
         </Button>
         <Button 
           type="submit"
           className="flex-1 h-12 rounded-xl font-medium text-base bg-emerald-400 hover:bg-emerald-500"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isGenerating}
         >
-          {isSubmitting ? "Processing..." : "Complete"}
+          {(isSubmitting || isGenerating) ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            "Let's Start"
+          )}
         </Button>
       </div>
     </form>

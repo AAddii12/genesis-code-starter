@@ -3,171 +3,160 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "@/types";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 export const useContentGeneration = (userProfile: UserProfile | null) => {
-  const navigate = useNavigate();
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [userCredits, setUserCredits] = useState<number | null>(null);
-
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Load generated text from session storage
   useEffect(() => {
-    checkUserCredits();
-  }, []);
-
-  const checkUserCredits = async () => {
+    const savedText = sessionStorage.getItem("generatedText");
+    if (savedText) {
+      setCaption(savedText);
+    }
+    
+    // Load user credits from the database
+    if (userProfile) {
+      loadUserCredits();
+    }
+  }, [userProfile]);
+  
+  const loadUserCredits = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase
-          .from('user_credits')
-          .select('credits_remaining')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (error) throw error;
-        if (data) {
-          setUserCredits(data.credits_remaining);
-        }
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("user_credits")
+        .select("credits_remaining")
+        .eq("user_id", user.id)
+        .single();
+        
+      if (error) throw error;
+      
+      if (data) {
+        setUserCredits(data.credits_remaining);
+      } else {
+        // If no record exists, they may be on the free tier with default credits
+        setUserCredits(5);
       }
     } catch (error) {
-      console.error("Error checking credits:", error);
+      console.error("Error loading user credits:", error);
     }
   };
-
+  
   const generateContent = async () => {
-    if (!userProfile) return;
-    try {
-      setIsGenerating(true);
-
-      // Check if user has credits
-      if (userCredits !== null && userCredits <= 0) {
-        toast({
-          title: "No credits available",
-          description: "You've used all your credits. Please upgrade to continue.",
-          variant: "destructive"
-        });
-        navigate("/pricing");
-        return;
-      }
-
-      // First, generate image with FAL API
-      const imagePrompt = `Create a modern social media post for a ${userProfile.businessType} targeting ${userProfile.targetAudience}, in a ${userProfile.styleVibe} style with ${userProfile.colorPalette} colors.`;
-
-      // Call the generate-image edge function
-      const { data: imageData, error: imageError } = await supabase.functions.invoke('generate-image', {
-        body: { prompt: imagePrompt }
-      });
-
-      if (imageError) {
-        throw new Error(`Image generation failed: ${imageError.message}`);
-      }
-
-      setGeneratedImage(imageData.imageUrl);
-
-      // Then, generate marketing text with OpenAI
-      const textPrompt = `Write a short marketing caption for a ${userProfile.businessType} targeting ${userProfile.targetAudience}, with the goal of ${userProfile.businessGoal}. Use a ${userProfile.styleVibe} tone and include hashtags and a CTA.`;
-
-      // Call the generate-text edge function
-      const { data: textData, error: textError } = await supabase.functions.invoke('generate-text', {
-        body: { prompt: textPrompt }
-      });
-
-      if (textError) {
-        throw new Error(`Text generation failed: ${textError.message}`);
-      }
-
-      setCaption(textData.text);
-
-      // Deduct credit after successful generation
-      deductCredit();
-      
+    if (!userProfile || isGenerating) return;
+    
+    if (userCredits !== null && userCredits <= 0) {
       toast({
-        title: "Content generated",
-        description: "Your content has been created successfully!"
+        title: "No credits left",
+        description: "You've used all your credits. Upgrade to continue.",
+        variant: "destructive",
       });
+      return;
+    }
+    
+    setIsGenerating(true);
+    toast({
+      title: "Generating content",
+      description: "Creating your custom content...",
+    });
+    
+    try {
+      // Here would be the call to generateImage API
+      // For now, just using a placeholder
+      setGeneratedImage("/placeholder.svg");
       
+      // Load the existing caption or generate a new one
+      const existingCaption = sessionStorage.getItem("generatedText");
+      if (existingCaption) {
+        setCaption(existingCaption);
+      }
+      
+      // Deduct a credit if successful
+      if (userCredits !== null) {
+        await deductCredit();
+      }
     } catch (error) {
       console.error("Error generating content:", error);
       toast({
         title: "Generation failed",
-        description: error instanceof Error ? error.message : "Failed to generate content. Please try again.",
-        variant: "destructive"
+        description: "Failed to generate content. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
     }
   };
-
+  
   const deductCredit = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && userCredits !== null) {
-        const newCredits = userCredits - 1;
-        const { error } = await supabase
-          .from('user_credits')
-          .update({
-            credits_remaining: newCredits,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
-          
-        if (error) throw error;
-        setUserCredits(newCredits);
-      }
+      if (!user) return;
+      
+      // Deduct one credit
+      const newCreditCount = userCredits! - 1;
+      
+      const { error } = await supabase
+        .from("user_credits")
+        .update({ credits_remaining: newCreditCount })
+        .eq("user_id", user.id);
+        
+      if (error) throw error;
+      
+      setUserCredits(newCreditCount);
     } catch (error) {
       console.error("Error deducting credit:", error);
     }
   };
-
+  
   const saveToMyContent = async () => {
-    if (!generatedImage || !caption) {
-      toast({
-        title: "Nothing to save",
-        description: "Please generate content first before saving."
-      });
-      return;
-    }
+    if (!generatedImage || !caption || !userProfile) return;
+    
+    setIsLoading(true);
+    
     try {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from("user_content")
-          .insert({
-            user_id: user.id,
-            image_url: generatedImage,
-            caption: caption
-          });
-          
-        if (error) throw error;
-        toast({
-          title: "Saved to My Content",
-          description: "Your content has been saved successfully."
+      if (!user) throw new Error("User not authenticated");
+      
+      const { error } = await supabase
+        .from("user_content")
+        .insert({
+          user_id: user.id,
+          image_url: generatedImage,
+          caption: caption
         });
-      }
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Content saved",
+        description: "Your content has been saved to My Content.",
+      });
     } catch (error) {
       console.error("Error saving content:", error);
       toast({
-        title: "Save failed",
-        description: "Failed to save content. Please try again.",
-        variant: "destructive"
+        title: "Error saving content",
+        description: "Failed to save your content. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const downloadContent = () => {
-    // In a real implementation, this would create a PNG or PDF for download
+    // This would be implemented to download the image and caption
     toast({
       title: "Download started",
-      description: "Your content is being prepared for download."
+      description: "Your content is being prepared for download.",
     });
   };
-
+  
   return {
     generatedImage,
     caption,
