@@ -6,6 +6,7 @@ import { UserProfile } from "@/types";
 export const useUserProfile = () => {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load user profile from session storage
@@ -16,7 +17,8 @@ export const useUserProfile = () => {
       // If no profile, redirect to onboarding
       navigate("/onboarding");
     }
+    setIsLoading(false);
   }, [navigate]);
 
-  return { userProfile };
+  return { userProfile, isLoading };
 };
