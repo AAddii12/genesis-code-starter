@@ -1,66 +1,292 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navigation = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [user, setUser] = useState<any>(null);
+  const [credits, setCredits] = useState<number | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          setUser(session.user);
+          await fetchUserCredits(session.user.id);
+        } else {
+          setUser(null);
+          setCredits(null);
+        }
+      }
+    );
+
+    // Check current auth state
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        await fetchUserCredits(user.id);
+      }
+    };
+    
+    checkUser();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const fetchUserCredits = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_credits')
+        .select('credits_remaining')
+        .eq('user_id', userId)
+        .single();
+      
+      if (error) throw error;
+      if (data) {
+        setCredits(data.credits_remaining);
+      }
+    } catch (error) {
+      console.error("Error fetching credits:", error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  const handleSignIn = () => {
+    navigate("/login");
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 py-4">
-      <div className="container mx-auto px-4 flex items-center justify-between">
-        <a href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">M</span>
+    <header className="bg-white shadow-sm">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          <div className="flex">
+            <Link to="/" className="flex-shrink-0 flex items-center">
+              <span className="font-bold text-xl">CONTENT 4 U</span>
+            </Link>
           </div>
-          <span className="font-semibold text-lg">ModernApp</span>
-        </a>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex md:items-center md:space-x-6">
+            <Link 
+              to="/" 
+              className={`text-sm font-medium ${
+                location.pathname === "/" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Home
+            </Link>
+            
+            {user ? (
+              <>
+                <Link 
+                  to="/onboarding" 
+                  className={`text-sm font-medium ${
+                    location.pathname === "/onboarding" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Create Content
+                </Link>
+                
+                <Link 
+                  to="/my-content" 
+                  className={`text-sm font-medium ${
+                    location.pathname === "/my-content" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  My Content
+                </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <a href="#features" className="text-sm font-medium hover:text-primary transition-colors">Features</a>
-          <a href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">How it works</a>
-          <a href="#testimonials" className="text-sm font-medium hover:text-primary transition-colors">Testimonials</a>
-          <a href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">Pricing</a>
-        </div>
+                <Link 
+                  to="/pricing" 
+                  className={`text-sm font-medium ${
+                    location.pathname === "/pricing" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Plans
+                </Link>
+                
+                <Link 
+                  to="/about" 
+                  className={`text-sm font-medium ${
+                    location.pathname === "/about" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  About
+                </Link>
 
-        <div className="hidden md:flex items-center space-x-4">
-          <Button variant="ghost" className="text-sm font-medium">Log In</Button>
-          <Button className="text-sm font-medium">Get Started</Button>
-        </div>
-
-        {/* Mobile menu button */}
-        <button className="md:hidden p-2" onClick={toggleMenu}>
-          {isMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className={cn(
-        "fixed inset-x-0 top-[72px] bg-white z-40 transition-all duration-300 md:hidden",
-        isMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
-      )}>
-        <div className="container mx-auto px-4 py-6 flex flex-col space-y-6 shadow-lg">
-          <a href="#features" className="text-base font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Features</a>
-          <a href="#how-it-works" className="text-base font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>How it works</a>
-          <a href="#testimonials" className="text-base font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Testimonials</a>
-          <a href="#pricing" className="text-base font-medium hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Pricing</a>
-          <div className="flex flex-col space-y-3 pt-4 border-t">
-            <Button variant="outline" className="w-full">Log In</Button>
-            <Button className="w-full">Get Started</Button>
+                {credits !== null && (
+                  <span className="text-sm font-medium text-gray-600 border rounded-full px-3 py-1">
+                    {credits} credits
+                  </span>
+                )}
+                
+                <Button variant="outline" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/about" 
+                  className={`text-sm font-medium ${
+                    location.pathname === "/about" ? "text-primary" : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  About
+                </Link>
+                
+                <Button onClick={handleSignIn}>
+                  Sign In
+                </Button>
+              </>
+            )}
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <span className="sr-only">Open main menu</span>
+              {isMenuOpen ? (
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </div>
-    </nav>
+      
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden">
+          <div className="pt-2 pb-3 space-y-1">
+            <Link 
+              to="/" 
+              className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                location.pathname === "/" 
+                  ? "bg-primary text-white" 
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Home
+            </Link>
+            
+            {user ? (
+              <>
+                <Link 
+                  to="/onboarding" 
+                  className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                    location.pathname === "/onboarding" 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Create Content
+                </Link>
+                
+                <Link 
+                  to="/my-content" 
+                  className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                    location.pathname === "/my-content" 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Content
+                </Link>
+                
+                <Link 
+                  to="/pricing" 
+                  className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                    location.pathname === "/pricing" 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Plans
+                </Link>
+                
+                <Link 
+                  to="/about" 
+                  className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                    location.pathname === "/about" 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About
+                </Link>
+                
+                {credits !== null && (
+                  <div className="px-3 py-2">
+                    <span className="text-sm font-medium text-gray-600 border rounded-full px-3 py-1">
+                      {credits} credits
+                    </span>
+                  </div>
+                )}
+                
+                <button
+                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/about" 
+                  className={`block pl-3 pr-4 py-2 text-base font-medium ${
+                    location.pathname === "/about" 
+                      ? "bg-primary text-white" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About
+                </Link>
+                
+                <button
+                  className="block w-full text-left pl-3 pr-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleSignIn();
+                  }}
+                >
+                  Sign In
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 
