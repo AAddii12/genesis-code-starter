@@ -39,7 +39,7 @@ serve(async (req: Request) => {
       },
       body: JSON.stringify({
         prompt,
-        model: "stabilityai/stable-diffusion-xl-base-1.0", // Use appropriate model
+        model: "stabilityai/stable-diffusion-xl-base-1.0",
         width: 1024,
         height: 1024,
         num_images: 1,

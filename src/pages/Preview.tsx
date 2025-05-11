@@ -70,30 +70,44 @@ const Preview = () => {
       // First, generate image with FAL API
       const imagePrompt = `Create a modern social media post for a ${userProfile.businessType} targeting ${userProfile.targetAudience}, in a ${userProfile.styleVibe} style with ${userProfile.colorPalette} colors.`;
 
-      // Mock image generation (replace with actual FAL API call)
-      // In a real implementation, you would call the FAL API edge function
-      setTimeout(() => {
-        // Using placeholder image for now
-        setGeneratedImage("/placeholder.svg");
-      }, 1500);
+      // Call the generate-image edge function
+      const { data: imageData, error: imageError } = await supabase.functions.invoke('generate-image', {
+        body: { prompt: imagePrompt }
+      });
+
+      if (imageError) {
+        throw new Error(`Image generation failed: ${imageError.message}`);
+      }
+
+      setGeneratedImage(imageData.imageUrl);
 
       // Then, generate marketing text with OpenAI
       const textPrompt = `Write a short marketing caption for a ${userProfile.businessType} targeting ${userProfile.targetAudience}, with the goal of ${userProfile.businessGoal}. Use a ${userProfile.styleVibe} tone and include hashtags and a CTA.`;
 
-      // Mock text generation (replace with actual OpenAI API call)
-      // In a real implementation, you would call the OpenAI API edge function
-      setTimeout(() => {
-        const sampleCaption = `✨ Elevate your ${userProfile.businessType} experience with our latest offerings! Perfect for ${userProfile.targetAudience} looking to make a statement. \n\nTap the link in bio to explore more and transform your routine today! \n\n#${userProfile.businessType.charAt(0).toUpperCase() + userProfile.businessType.slice(1)}Life #${userProfile.businessGoal.charAt(0).toUpperCase() + userProfile.businessGoal.slice(1)}Goals #ContentForYou`;
-        setCaption(sampleCaption);
+      // Call the generate-text edge function
+      const { data: textData, error: textError } = await supabase.functions.invoke('generate-text', {
+        body: { prompt: textPrompt }
+      });
 
-        // Deduct credit after successful generation
-        deductCredit();
-      }, 2500);
+      if (textError) {
+        throw new Error(`Text generation failed: ${textError.message}`);
+      }
+
+      setCaption(textData.text);
+
+      // Deduct credit after successful generation
+      deductCredit();
+      
+      toast({
+        title: "Content generated",
+        description: "Your content has been created successfully!"
+      });
+      
     } catch (error) {
       console.error("Error generating content:", error);
       toast({
         title: "Generation failed",
-        description: "Failed to generate content. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate content. Please try again.",
         variant: "destructive"
       });
     } finally {
