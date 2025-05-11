@@ -22,16 +22,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navigation />
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/preview" element={<Preview />} />
-          <Route path="/my-content" element={<MyContent />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={
+            <>
+              <Navigation />
+              <Routes>
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/preview" element={<Preview />} />
+                <Route path="/my-content" element={<MyContent />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </>
+          } />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
