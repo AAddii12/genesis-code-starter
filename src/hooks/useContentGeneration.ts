@@ -11,11 +11,16 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Load generated text from session storage
+  // Load generated content from session storage
   useEffect(() => {
     const savedText = sessionStorage.getItem("generatedText");
     if (savedText) {
       setCaption(savedText);
+    }
+    
+    const savedImage = sessionStorage.getItem("generatedImage");
+    if (savedImage) {
+      setGeneratedImage(savedImage);
     }
     
     // Load user credits from the database
@@ -69,7 +74,12 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     try {
       // Here would be the call to generateImage API
       // For now, just using a placeholder
-      setGeneratedImage("/placeholder.svg");
+      const savedImage = sessionStorage.getItem("generatedImage");
+      if (savedImage) {
+        setGeneratedImage(savedImage);
+      } else {
+        setGeneratedImage("/placeholder.svg");
+      }
       
       // Load the existing caption or generate a new one
       const existingCaption = sessionStorage.getItem("generatedText");

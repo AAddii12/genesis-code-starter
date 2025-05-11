@@ -15,6 +15,7 @@ import {
 import { VisualPreviewSection } from "./VisualPreviewSection";
 import { FormSavingIndicator } from "./FormSavingIndicator";
 import { useTextGeneration } from "@/hooks/useTextGeneration";
+import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { toast } from "@/hooks/use-toast";
 
 interface VisualPreferencesFormProps {
@@ -38,7 +39,8 @@ export const VisualPreferencesForm = ({
   initialValues = {} 
 }: VisualPreferencesFormProps) => {
   const navigate = useNavigate();
-  const { generateText, isGenerating } = useTextGeneration();
+  const { generateText, isGenerating: isGeneratingText } = useTextGeneration();
+  const { generateImage, isGenerating: isGeneratingImage } = useImageGeneration();
   const [colorPalette, setColorPalette] = useState<UserProfile['colorPalette']>(
     initialValues.colorPalette || "soft pastels"
   );
@@ -125,8 +127,11 @@ export const VisualPreferencesForm = ({
         description: "Creating personalized content for your business...",
       });
       
-      // Generate the marketing caption
-      await generateText(userProfile);
+      // Generate the marketing caption and image in parallel
+      await Promise.all([
+        generateText(userProfile),
+        generateImage(userProfile)
+      ]);
       
       // Navigate to the preview page
       navigate("/preview");
@@ -140,6 +145,8 @@ export const VisualPreferencesForm = ({
       setIsSubmitting(false);
     }
   };
+
+  const isGenerating = isGeneratingText || isGeneratingImage;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
