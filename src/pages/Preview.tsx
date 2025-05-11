@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 const Preview = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, consumeCredit, userCredits } = useAuth();
   const [imageUrl, setImageUrl] = useState("");
   const [caption, setCaption] = useState("");
   const [isGenerating, setIsGenerating] = useState(true);
@@ -36,6 +36,13 @@ const Preview = () => {
       setIsGenerating(true);
       
       try {
+        // Check if user has enough credits before generating
+        const canGenerate = await consumeCredit();
+        if (!canGenerate) {
+          navigate("/"); // Redirect to home/pricing page
+          return;
+        }
+
         // Call edge function for image generation
         const imagePrompt = `Create a modern social media post for a ${userProfile.businessType} targeting ${userProfile.targetAudience}, in a ${userProfile.styleVibe} style with ${userProfile.colorPalette} colors.`;
         
@@ -59,7 +66,7 @@ const Preview = () => {
     };
 
     generateContent();
-  }, [userProfile, navigate, user]);
+  }, [userProfile, navigate, user, consumeCredit]);
 
   const handleSaveContent = async () => {
     if (!user) {
@@ -103,6 +110,15 @@ const Preview = () => {
         </div>
       ) : (
         <div className="space-y-8">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Preview</h2>
+            {userCredits && (
+              <p className="text-sm text-muted-foreground">
+                Credits remaining: {userCredits.credits_remaining}
+              </p>
+            )}
+          </div>
+          
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <img 

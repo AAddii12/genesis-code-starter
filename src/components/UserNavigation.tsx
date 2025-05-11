@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { toast } from "sonner";
+import UserCredits from "@/components/UserCredits";
 
 const UserNavigation = () => {
   const { user } = useAuth();
@@ -33,6 +34,9 @@ const UserNavigation = () => {
       <Link to="/" className="text-foreground hover:text-primary">
         Home
       </Link>
+      <Link to="/pricing" className="text-foreground hover:text-primary">
+        Pricing
+      </Link>
       {user ? (
         <>
           <Link to="/onboarding" className="text-foreground hover:text-primary">
@@ -41,6 +45,7 @@ const UserNavigation = () => {
           <Link to="/my-content" className="text-foreground hover:text-primary">
             My Content
           </Link>
+          {user && <UserCredits />}
           <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
             {isLoggingOut ? "Logging out..." : "Log Out"}
           </Button>
