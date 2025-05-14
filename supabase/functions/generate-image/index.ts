@@ -69,7 +69,7 @@ serve(async (req: Request) => {
     );
   } catch (error) {
     console.error("Error generating image:", error);
-    
+    ד
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
