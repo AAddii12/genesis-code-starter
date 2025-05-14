@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { UserProfile } from "@/types";
 
 const ONBOARDING_STORAGE_KEY = "onboarding_form_data";
+const WEBHOOK_URL = "jbin9fy5iv65yxrdf49suzadoeqren2x@hook.eu2.make.com";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -31,17 +32,45 @@ const Onboarding = () => {
     businessType: UserProfile['businessType'];
     targetAudience: string;
     businessGoal: UserProfile['businessGoal'];
+    email: string;
   }) => {
     setUserProfile((prev) => ({ 
       ...prev, 
       businessName: data.businessName,
       businessType: data.businessType,
       targetAudience: data.targetAudience,
-      businessGoal: data.businessGoal 
+      businessGoal: data.businessGoal,
+      email: data.email
     }));
     setStep(2);
     // Scroll to top when changing steps
     window.scrollTo(0, 0);
+  };
+
+  const sendWebhookRequest = async (data: {
+    businessType: string;
+    visualStyle: string;
+    email: string;
+  }) => {
+    try {
+      const response = await fetch(`https://${WEBHOOK_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook request failed with status ${response.status}`);
+      }
+
+      console.log('Webhook request sent successfully');
+    } catch (error) {
+      console.error('Error sending webhook request:', error);
+      // We don't want to block the user experience if the webhook fails
+      // So just log the error and continue
+    }
   };
 
   const handleVisualPreferencesSubmit = async (data: {
@@ -76,6 +105,7 @@ const Onboarding = () => {
           color_palette: fullProfile.colorPalette,
           style_vibe: fullProfile.styleVibe,
           preferred_platforms: fullProfile.preferredPlatforms,
+          email: fullProfile.email
         });
         
         if (error) throw error;
@@ -83,6 +113,13 @@ const Onboarding = () => {
       
       // Store profile in session storage for use across the app
       sessionStorage.setItem("userProfile", JSON.stringify(fullProfile));
+      
+      // Send webhook request
+      await sendWebhookRequest({
+        businessType: fullProfile.businessType,
+        visualStyle: fullProfile.styleVibe,
+        email: fullProfile.email
+      });
       
       // We've completed the onboarding, clear the temporary storage
       localStorage.removeItem(ONBOARDING_STORAGE_KEY);

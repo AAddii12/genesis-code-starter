@@ -12,12 +12,14 @@ interface BusinessInfoFormProps {
     businessType: UserProfile['businessType'];
     targetAudience: string;
     businessGoal: UserProfile['businessGoal'];
+    email: string;
   }) => void;
   initialValues?: {
     businessName?: string;
     businessType?: UserProfile['businessType'];
     targetAudience?: string;
     businessGoal?: UserProfile['businessGoal'];
+    email?: string;
   };
 }
 
@@ -26,11 +28,13 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
   const [businessType, setBusinessType] = useState<UserProfile['businessType']>(initialValues.businessType || "beauty");
   const [targetAudience, setTargetAudience] = useState(initialValues.targetAudience || "");
   const [businessGoal, setBusinessGoal] = useState<UserProfile['businessGoal']>(initialValues.businessGoal || "sales");
+  const [email, setEmail] = useState(initialValues.email || "");
   
   // Validation states
   const [errors, setErrors] = useState<{
     businessName?: string;
     targetAudience?: string;
+    email?: string;
   }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,14 +44,15 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
   
   // Save to localStorage whenever form values change
   useEffect(() => {
-    if (businessName || targetAudience || businessType || businessGoal) {
+    if (businessName || targetAudience || businessType || businessGoal || email) {
       setIsDirty(true);
       const timer = setTimeout(() => {
         const formData = {
           businessName,
           businessType,
           targetAudience,
-          businessGoal
+          businessGoal,
+          email
         };
         localStorage.setItem("onboarding_form_data", JSON.stringify(formData));
         setIsDirty(false);
@@ -55,12 +60,13 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
       
       return () => clearTimeout(timer);
     }
-  }, [businessName, businessType, targetAudience, businessGoal]);
+  }, [businessName, businessType, targetAudience, businessGoal, email]);
 
   const validateForm = () => {
     const newErrors: {
       businessName?: string;
       targetAudience?: string;
+      email?: string;
     } = {};
     
     if (!businessName.trim()) {
@@ -69,6 +75,12 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
     
     if (!targetAudience.trim()) {
       newErrors.targetAudience = "Target audience is required";
+    }
+    
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
     }
     
     setErrors(newErrors);
@@ -84,7 +96,8 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
         businessName,
         businessType,
         targetAudience,
-        businessGoal
+        businessGoal,
+        email
       });
     }
     setIsSubmitting(false);
@@ -96,6 +109,10 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
 
   const clearTargetAudienceError = () => {
     setErrors(prev => ({ ...prev, targetAudience: undefined }));
+  };
+
+  const clearEmailError = () => {
+    setErrors(prev => ({ ...prev, email: undefined }));
   };
 
   return (
@@ -133,6 +150,18 @@ export const BusinessInfoForm = ({ onNext, initialValues = {} }: BusinessInfoFor
         value={businessGoal}
         onChange={setBusinessGoal}
         isDirty={isDirty}
+      />
+
+      <TextInputField
+        id="email"
+        label="Email Address"
+        value={email}
+        onChange={setEmail}
+        placeholder="Enter your email address"
+        tooltip="We'll use this email to send you updates and notifications"
+        error={errors.email}
+        isDirty={isDirty}
+        onClearError={clearEmailError}
       />
 
       <Button 
