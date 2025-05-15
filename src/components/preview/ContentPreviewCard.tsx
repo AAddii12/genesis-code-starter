@@ -3,7 +3,6 @@ import { CaptionEditor } from "./CaptionEditor";
 import { GenerationControls } from "./GenerationControls";
 import { PreviewImage } from "./PreviewImage";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ContentPreviewCardProps {
@@ -14,8 +13,6 @@ interface ContentPreviewCardProps {
   isGenerating: boolean;
   isLoading: boolean;
   generateContent: () => void;
-  generateWithGemini: () => void;
-  isGeminiGenerating: boolean;
   downloadContent: () => void;
   saveToMyContent: () => void;
 }
@@ -28,8 +25,6 @@ export const ContentPreviewCard = ({
   isGenerating,
   isLoading,
   generateContent,
-  generateWithGemini,
-  isGeminiGenerating,
   downloadContent,
   saveToMyContent,
 }: ContentPreviewCardProps) => {
@@ -44,24 +39,6 @@ export const ContentPreviewCard = ({
           <CaptionEditor caption={caption} setCaption={setCaption} />
           
           <div className="mt-auto">
-            <Button 
-              onClick={generateWithGemini} 
-              disabled={isGeminiGenerating} 
-              className="w-full text-base bg-[#6366f1] hover:bg-[#4f46e5] text-white font-medium py-6 mb-3 rounded-xl transition-all transform hover:translate-y-[-2px]"
-            >
-              {isGeminiGenerating ? (
-                <>
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                  Generating with Gemini...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Generate with Gemini AI
-                </>
-              )}
-            </Button>
-            
             <GenerationControls
               userCredits={userCredits}
               isGenerating={isGenerating}
