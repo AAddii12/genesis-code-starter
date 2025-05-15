@@ -55,6 +55,7 @@ export const useImageGeneration = () => {
         toast({
           title: "Using placeholder image",
           description: `Could not connect to image generation service: ${error.message}. Using a placeholder for testing.`,
+          variant: "default",
         });
         
         return placeholderImage;
@@ -84,6 +85,7 @@ export const useImageGeneration = () => {
         toast({
           title: "Using placeholder image",
           description: "Image generation service returned no data. Using a placeholder for testing.",
+          variant: "default",
         });
         
         return placeholderImage;
@@ -98,7 +100,6 @@ export const useImageGeneration = () => {
         toast({
           title: "Using placeholder image",
           description: data.error ? `Image generation service error: ${data.error}` : "Using placeholder image due to service issues.",
-          // Changed from "warning" to "default" as only "default" and "destructive" are supported
           variant: "default",
         });
       } else {
@@ -139,6 +140,7 @@ export const useImageGeneration = () => {
       toast({
         title: "Using placeholder image",
         description: `Encountered an error during image generation: ${error instanceof Error ? error.message : "Unknown error"}. Using a placeholder for testing.`,
+        variant: "default",
       });
       
       return placeholderImage;

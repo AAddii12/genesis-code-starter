@@ -26,22 +26,22 @@ serve(async (req: Request) => {
     console.log("Generating image with prompt:", prompt);
     console.log("FAL API key available:", !!falApiKey);
 
-    // As a backup plan, we'll use a placeholder service that doesn't require network connectivity
-    // in case the FAL API is having connectivity issues
     try {
-      console.log("Sending request to FAL API...");
-      const response = await fetch("https://api.fal.ai/text-to-image", {
+      console.log("Sending request to FAL API using improved structure...");
+      // Using the recommended structure for the FAL request
+      const response = await fetch("https://api.fal.ai/v1/subscriptions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Key ${falApiKey}`,
         },
         body: JSON.stringify({
-          prompt,
-          model: "stabilityai/stable-diffusion-xl-base-1.0",
-          width: 1024,
-          height: 1024,
-          num_images: 1,
+          model: "fal-ai/flux/dev", // Using the model as specified in the example
+          input: {
+            prompt: prompt,
+          },
+          logs: true,
+          stream: false // Get the full result at once instead of streaming
         }),
       });
 
@@ -57,10 +57,11 @@ serve(async (req: Request) => {
       console.log("FAL API response received successfully");
 
       // Extract image URL from response
-      const imageUrl = data.images?.[0]?.url;
+      // The structure is different based on the example provided
+      const imageUrl = data.data?.images?.[0] || data.data?.image;
       
       if (!imageUrl) {
-        console.error("No image URL in response:", data);
+        console.error("No image URL in response:", JSON.stringify(data));
         throw new Error("Failed to generate image: No image URL in response");
       }
 
@@ -76,8 +77,10 @@ serve(async (req: Request) => {
         }
       );
     } catch (falError) {
+      console.error("FAL API request failed:", falError.message);
+      
       // If FAL API fails, we'll use a placeholder image based on the prompt
-      console.log("FAL API request failed. Using fallback image service:", falError.message);
+      console.log("Using fallback image service:", falError.message);
       
       // Create a fallback image URL with the prompt encoded in it
       const encodedPrompt = encodeURIComponent(prompt.substring(0, 100));
