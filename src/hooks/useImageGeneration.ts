@@ -36,63 +36,12 @@ export const useImageGeneration = () => {
       
       if (error) {
         console.error("Error from generate-image function:", error);
-        
-        // Generate a visual placeholder image based on user profile
-        let colorHex;
-        switch (userProfile.colorPalette) {
-          case "soft pastels": colorHex = "f5e1e9"; break;
-          case "neon bold": colorHex = "00ff8c"; break;
-          case "monochrome": colorHex = "e0e0e0"; break;
-          case "custom": 
-          default: colorHex = "f5f0fa"; break;
-        }
-        
-        // Create a better placeholder with user data embedded
-        const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
-        const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
-        
-        setImageUrl(placeholderImage);
-        setIsFallbackImage(true);
-        sessionStorage.setItem("generatedImage", placeholderImage);
-        sessionStorage.setItem("isFallbackImage", "true");
-        
-        toast({
-          title: "Using placeholder image",
-          description: `Could not connect to image generation service: ${error.message}. Using a placeholder for testing.`,
-          variant: "default",
-        });
-        
-        return placeholderImage;
+        throw error;
       }
       
       if (!data?.imageUrl) {
         console.error("No image URL in response:", data);
-        
-        // Also use enhanced placeholder if no URL returned
-        let colorHex;
-        switch (userProfile.colorPalette) {
-          case "soft pastels": colorHex = "f5e1e9"; break;
-          case "neon bold": colorHex = "00ff8c"; break;
-          case "monochrome": colorHex = "e0e0e0"; break;
-          case "custom": 
-          default: colorHex = "f5f0fa"; break;
-        }
-        
-        const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
-        const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
-        
-        setImageUrl(placeholderImage);
-        setIsFallbackImage(true);
-        sessionStorage.setItem("generatedImage", placeholderImage);
-        sessionStorage.setItem("isFallbackImage", "true");
-        
-        toast({
-          title: "Using placeholder image",
-          description: "Image generation service returned no data. Using a placeholder for testing.",
-          variant: "default",
-        });
-        
-        return placeholderImage;
+        throw new Error("No image URL returned from server");
       }
       
       // Check if the response indicates this is a fallback image
@@ -133,7 +82,7 @@ export const useImageGeneration = () => {
       else if (userProfile.colorPalette === "neon bold") colorHex = "00ff8c";
       else if (userProfile.colorPalette === "monochrome") colorHex = "e0e0e0";
       
-      const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
+      const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType || "Error");
       const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
       
       setImageUrl(placeholderImage);

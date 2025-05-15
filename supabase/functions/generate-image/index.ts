@@ -55,21 +55,22 @@ serve(async (req: Request) => {
       throw new Error("FAL_API_KEY not found in environment variables");
     }
 
-    console.log("Generating image with server-constructed prompt:", prompt.substring(0, 50) + "...");
+    console.log("Generating image with prompt:", prompt.substring(0, 100) + "...");
     
-    // Step 1: Submit the generation request
-    const response = await fetch('https://api.fal.ai/v1/images/generations', {
+    // Direct approach using the FAL queue API as specified in the documentation
+    const response = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${falApiKey}`,
+        'Authorization': `Key ${falApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt: prompt,
-        model: 'fal-ai/flux/dev',
-        width: 1024,
-        height: 1024,
-        num_images: 1
+        image_size: "landscape_4_3",
+        num_inference_steps: 28,
+        guidance_scale: 3.5,
+        num_images: 1,
+        enable_safety_checker: true
       }),
     });
       
@@ -82,18 +83,7 @@ serve(async (req: Request) => {
     const result = await response.json();
     console.log("FAL API response received:", JSON.stringify(result).substring(0, 200) + "...");
     
-    // Check if we have an image URL directly
-    if (result.images && result.images.length > 0) {
-      const imageUrl = result.images[0].url;
-      console.log("Image generated successfully:", imageUrl.substring(0, 50) + "...");
-      
-      return new Response(
-        JSON.stringify({ imageUrl }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    // If we have a request ID, need to poll for results
+    // Check if we have a request_id and need to poll for results
     if (result.request_id) {
       console.log("Request queued with ID:", result.request_id);
       
@@ -107,10 +97,10 @@ serve(async (req: Request) => {
         
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
         
-        const statusResponse = await fetch(`https://api.fal.ai/v1/images/generations/${result.request_id}`, {
+        const statusResponse = await fetch(`https://queue.fal.run/fal-ai/flux/requests/${result.request_id}/status`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${falApiKey}`,
+            'Authorization': `Key ${falApiKey}`,
             'Content-Type': 'application/json',
           }
         });
@@ -123,14 +113,33 @@ serve(async (req: Request) => {
         const statusResult = await statusResponse.json();
         console.log(`Status check result (attempt ${attempts}):`, JSON.stringify(statusResult).substring(0, 100) + "...");
         
-        if (statusResult.status === "COMPLETED" && statusResult.images && statusResult.images.length > 0) {
-          const imageUrl = statusResult.images[0].url;
-          console.log("Image generation completed:", imageUrl.substring(0, 50) + "...");
+        // If completed, get the full result
+        if (statusResult.status === "COMPLETED") {
+          const resultResponse = await fetch(`https://queue.fal.run/fal-ai/flux/requests/${result.request_id}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Key ${falApiKey}`,
+              'Content-Type': 'application/json',
+            }
+          });
           
-          return new Response(
-            JSON.stringify({ imageUrl }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+          if (!resultResponse.ok) {
+            console.error("Failed to fetch result:", resultResponse.status);
+            throw new Error(`Failed to fetch result: ${resultResponse.status}`);
+          }
+          
+          const finalResult = await resultResponse.json();
+          console.log("Image generation completed:", JSON.stringify(finalResult).substring(0, 100) + "...");
+          
+          if (finalResult.images && finalResult.images.length > 0) {
+            const imageUrl = finalResult.images[0].url;
+            console.log("Image URL:", imageUrl.substring(0, 50) + "...");
+            
+            return new Response(
+              JSON.stringify({ imageUrl }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
         }
         
         if (statusResult.status === "FAILED") {
@@ -141,7 +150,18 @@ serve(async (req: Request) => {
       throw new Error("Image generation timed out after maximum polling attempts");
     }
     
-    // If we reach here, the API didn't give us a direct image URL or a request ID
+    // If there are images in the initial response (sync mode)
+    if (result.images && result.images.length > 0) {
+      const imageUrl = result.images[0].url;
+      console.log("Image generated successfully:", imageUrl.substring(0, 50) + "...");
+      
+      return new Response(
+        JSON.stringify({ imageUrl }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // If we reach here, the API didn't give us what we expected
     console.error("Unexpected API response format:", JSON.stringify(result).substring(0, 200) + "...");
     throw new Error("Unexpected API response format");
     

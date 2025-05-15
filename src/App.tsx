@@ -50,8 +50,6 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
           <BrowserRouter>
             <Routes>
               {/* All routes are now accessible without authentication */}
@@ -66,6 +64,9 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          {/* Place Toaster components here at the app root level */}
+          <Toaster />
+          <Sonner />
         </TooltipProvider>
       </ToastProvider>
     </QueryClientProvider>

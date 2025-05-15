@@ -6,7 +6,6 @@ import { VisualPreviewSection } from "./VisualPreviewSection";
 import { useTextGeneration } from "@/hooks/useTextGeneration";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { toast } from "@/hooks/use-toast";
-import { ToastProvider } from "@/hooks/use-toast";
 import { ColorPaletteSelection } from "./form/ColorPaletteSelection";
 import { StyleVibeSelection } from "./form/StyleVibeSelection";
 import { PlatformSelection } from "./form/PlatformSelection";
@@ -136,39 +135,37 @@ export const VisualPreferencesForm = ({
   const isGenerating = isGeneratingText || isGeneratingImage;
 
   return (
-    <ToastProvider>
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <ColorPaletteSelection 
-          colorPalette={colorPalette} 
-          setColorPalette={setColorPalette} 
-          isDirty={isDirty} 
-        />
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <ColorPaletteSelection 
+        colorPalette={colorPalette} 
+        setColorPalette={setColorPalette} 
+        isDirty={isDirty} 
+      />
 
-        <StyleVibeSelection 
-          styleVibe={styleVibe} 
-          setStyleVibe={setStyleVibe} 
-        />
-        
-        <VisualPreviewSection 
-          colorPalette={colorPalette} 
-          styleVibe={styleVibe}
-          businessType={initialValues.businessType}
-        />
+      <StyleVibeSelection 
+        styleVibe={styleVibe} 
+        setStyleVibe={setStyleVibe} 
+      />
+      
+      <VisualPreviewSection 
+        colorPalette={colorPalette} 
+        styleVibe={styleVibe}
+        businessType={initialValues.businessType}
+      />
 
-        <PlatformSelection 
-          preferredPlatforms={preferredPlatforms}
-          togglePlatform={togglePlatform}
-          error={error}
-        />
+      <PlatformSelection 
+        preferredPlatforms={preferredPlatforms}
+        togglePlatform={togglePlatform}
+        error={error}
+      />
 
-        <FormNavigation 
-          onBack={onBack}
-          isSubmitting={isSubmitting}
-          isGenerating={isGenerating}
-          submitLabel="Let's Start"
-          webhookUrl={webhookUrl}
-        />
-      </form>
-    </ToastProvider>
+      <FormNavigation 
+        onBack={onBack}
+        isSubmitting={isSubmitting}
+        isGenerating={isGenerating}
+        submitLabel="Let's Start"
+        webhookUrl={webhookUrl}
+      />
+    </form>
   );
 };
