@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createFalClient } from "npm:@fal-ai/serverless-client@0.7.0";
+import { FAL } from "npm:@fal-ai/serverless-client@0.7.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,8 +33,8 @@ serve(async (req: Request) => {
     try {
       console.log("Setting up FAL client...");
       
-      // Initialize the FAL client
-      const fal = createFalClient({
+      // Initialize the FAL client with the correct API
+      const fal = new FAL({
         credentials: falApiKey,
       });
       
@@ -113,3 +113,4 @@ serve(async (req: Request) => {
     );
   }
 });
+
