@@ -32,7 +32,7 @@ serve(async (req: Request) => {
     try {
       console.log("Making direct HTTP request to FAL API...");
       
-      // Make direct HTTP request to FAL API
+      // Make direct HTTP request to FAL API with image_model parameter
       const response = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
         method: 'POST',
         headers: {
@@ -41,6 +41,7 @@ serve(async (req: Request) => {
         },
         body: JSON.stringify({
           prompt: prompt,
+          image_model: 'fal-ai/flux/dev'
         }),
       });
       
@@ -89,6 +90,7 @@ serve(async (req: Request) => {
             model: "flux",
             prompt: prompt,
             image_size: "1024x1024",
+            image_model: 'fal-ai/flux/dev'
           }),
         });
         
