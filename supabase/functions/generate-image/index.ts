@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { FAL } from "npm:@fal-ai/serverless-client@0.7.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,27 +30,27 @@ serve(async (req: Request) => {
     console.log("FAL API key first 4 chars:", falApiKey.substring(0, 4));
     
     try {
-      console.log("Setting up FAL client...");
+      console.log("Making direct HTTP request to FAL API...");
       
-      // Initialize the FAL client with the correct API
-      const fal = new FAL({
-        credentials: falApiKey,
-      });
-      
-      console.log("FAL client initialized successfully");
-      console.log("Sending request to FAL API with prompt:", prompt.substring(0, 50) + "...");
-      
-      // Use the FAL client to generate an image
-      const result = await fal.run({
-        modelId: "flux:dev",  // Using the flux model
-        input: {
+      // Make direct HTTP request to FAL API
+      const response = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${falApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           prompt: prompt,
-        },
-        outputSchema: {
-          images: ["string"],
-        },
+        }),
       });
       
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("FAL API returned an error:", response.status, errorData);
+        throw new Error(`FAL API error: ${response.status} ${errorData}`);
+      }
+      
+      const result = await response.json();
       console.log("FAL API response received:", JSON.stringify(result).substring(0, 200) + "...");
       
       if (!result || !result.images || !result.images.length) {
@@ -76,26 +75,72 @@ serve(async (req: Request) => {
       console.error("FAL API request failed:", falError.message);
       console.error("Error details:", falError.stack || "No stack trace available");
       
-      // Generate a fallback image URL based on the prompt
-      console.log("Using fallback image service due to API failures");
-      const encodedPrompt = encodeURIComponent(prompt.substring(0, 100));
-      const fallbackImageUrl = `https://placehold.co/1024x1024/random/white?text=${encodedPrompt}`;
-      
-      console.log("Using fallback image URL:", fallbackImageUrl);
-      
-      return new Response(
-        JSON.stringify({ 
-          imageUrl: fallbackImageUrl,
-          isFallback: true,
-          error: falError.message 
-        }),
-        { 
-          headers: { 
-            ...corsHeaders,
-            "Content-Type": "application/json" 
-          } 
+      // Try one alternative endpoint as fallback
+      try {
+        console.log("Trying alternative FAL API endpoint...");
+        
+        const altResponse = await fetch('https://api.fal.ai/text-to-image', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${falApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: "flux",
+            prompt: prompt,
+            image_size: "1024x1024",
+          }),
+        });
+        
+        if (!altResponse.ok) {
+          const altErrorData = await altResponse.text();
+          console.error("Alternative endpoint also failed:", altResponse.status, altErrorData);
+          throw new Error(`Alternative endpoint also failed: ${altErrorData}`);
         }
-      );
+        
+        const altResult = await altResponse.json();
+        
+        if (altResult && altResult.images && altResult.images.length > 0) {
+          const altImageUrl = altResult.images[0];
+          console.log("Image generated from alternative endpoint:", altImageUrl.substring(0, 50) + "...");
+          
+          return new Response(
+            JSON.stringify({ imageUrl: altImageUrl }),
+            { 
+              headers: { 
+                ...corsHeaders,
+                "Content-Type": "application/json" 
+              } 
+            }
+          );
+        } else {
+          throw new Error("No images in alternative endpoint response");
+        }
+      } catch (altError) {
+        console.error("Alternative endpoint failed:", altError.message);
+        console.error("Error details:", altError.stack || "No stack trace available");
+        
+        // Generate a fallback image URL based on the prompt
+        console.log("Using fallback image service due to API failures");
+        const encodedPrompt = encodeURIComponent(prompt.substring(0, 100));
+        const fallbackImageUrl = `https://placehold.co/1024x1024/random/white?text=${encodedPrompt}`;
+        
+        console.log("Using fallback image URL:", fallbackImageUrl);
+        
+        return new Response(
+          JSON.stringify({ 
+            imageUrl: fallbackImageUrl,
+            isFallback: true,
+            error: falError.message 
+          }),
+          { 
+            headers: { 
+              ...corsHeaders,
+              "Content-Type": "application/json" 
+            } 
+          }
+        );
+      }
     }
   } catch (error) {
     console.error("Error generating image:", error);
@@ -113,4 +158,3 @@ serve(async (req: Request) => {
     );
   }
 });
-
