@@ -98,7 +98,8 @@ export const useImageGeneration = () => {
         toast({
           title: "Using placeholder image",
           description: data.error ? `Image generation service error: ${data.error}` : "Using placeholder image due to service issues.",
-          variant: "warning",
+          // Changed from "warning" to "default" as only "default" and "destructive" are supported
+          variant: "default",
         });
       } else {
         setIsFallbackImage(false);
