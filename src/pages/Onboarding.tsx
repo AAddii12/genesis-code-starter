@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { UserProfile } from "@/types";
 
 const ONBOARDING_STORAGE_KEY = "onboarding_form_data";
-const WEBHOOK_URL = "jbin9fy5iv65yxrdf49suzadoeqren2x@hook.eu2.make.com";
+const WEBHOOK_URL = "https://hook.eu2.make.com/agsvp2r4q7itr8j0cg7lrcqa8qjrdng6";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -53,17 +53,14 @@ const Onboarding = () => {
     email: string;
   }) => {
     try {
-      const response = await fetch(`https://${WEBHOOK_URL}`, {
+      const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
+        mode: 'no-cors', // Important for CORS issues
       });
-
-      if (!response.ok) {
-        throw new Error(`Webhook request failed with status ${response.status}`);
-      }
 
       console.log('Webhook request sent successfully');
     } catch (error) {
@@ -170,6 +167,7 @@ const Onboarding = () => {
               onBack={handleBack} 
               onComplete={handleVisualPreferencesSubmit}
               initialValues={userProfile}
+              webhookUrl={WEBHOOK_URL}
             />
           )}
         </CardContent>

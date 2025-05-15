@@ -7,12 +7,16 @@ interface FormNavigationProps {
   onBack: () => void;
   isSubmitting: boolean;
   isGenerating: boolean;
+  submitLabel?: string;
+  webhookUrl?: string;
 }
 
 export const FormNavigation: React.FC<FormNavigationProps> = ({
   onBack,
   isSubmitting,
   isGenerating,
+  submitLabel = "Let's Start",
+  webhookUrl,
 }) => {
   const isDisabled = isSubmitting || isGenerating;
 
@@ -38,7 +42,7 @@ export const FormNavigation: React.FC<FormNavigationProps> = ({
             Processing...
           </>
         ) : (
-          "Let's Start"
+          submitLabel
         )}
       </Button>
     </div>

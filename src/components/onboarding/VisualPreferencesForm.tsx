@@ -24,12 +24,14 @@ interface VisualPreferencesFormProps {
     styleVibe?: UserProfile['styleVibe'];
     preferredPlatforms?: string[];
   };
+  webhookUrl?: string;
 }
 
 export const VisualPreferencesForm = ({ 
   onBack, 
   onComplete, 
-  initialValues = {} 
+  initialValues = {}, 
+  webhookUrl
 }: VisualPreferencesFormProps) => {
   const navigate = useNavigate();
   const { generateText, isGenerating: isGeneratingText } = useTextGeneration();
@@ -161,6 +163,8 @@ export const VisualPreferencesForm = ({
         onBack={onBack}
         isSubmitting={isSubmitting}
         isGenerating={isGenerating}
+        submitLabel="Let's Start"
+        webhookUrl={webhookUrl}
       />
     </form>
   );
