@@ -8,12 +8,14 @@ export const useImageGeneration = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isFallbackImage, setIsFallbackImage] = useState(false);
 
   const generateImage = async (userProfile: UserProfile) => {
     if (!userProfile) return null;
     
     setIsGenerating(true);
     setError(null);
+    setIsFallbackImage(false);
     
     try {
       // Prepare the prompt with userProfile data
@@ -31,7 +33,7 @@ export const useImageGeneration = () => {
       if (error) {
         console.error("Error from generate-image function:", error);
         
-        // Generate a more visual placeholder image based on user profile
+        // Generate a visual placeholder image based on user profile
         let colorHex;
         switch (userProfile.colorPalette) {
           case "soft pastels": colorHex = "f5e1e9"; break;
@@ -46,7 +48,9 @@ export const useImageGeneration = () => {
         const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
         
         setImageUrl(placeholderImage);
+        setIsFallbackImage(true);
         sessionStorage.setItem("generatedImage", placeholderImage);
+        sessionStorage.setItem("isFallbackImage", "true");
         
         toast({
           title: "Using placeholder image",
@@ -73,7 +77,9 @@ export const useImageGeneration = () => {
         const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
         
         setImageUrl(placeholderImage);
+        setIsFallbackImage(true);
         sessionStorage.setItem("generatedImage", placeholderImage);
+        sessionStorage.setItem("isFallbackImage", "true");
         
         toast({
           title: "Using placeholder image",
@@ -83,14 +89,32 @@ export const useImageGeneration = () => {
         return placeholderImage;
       }
       
+      // Check if the response indicates this is a fallback image
+      if (data.isFallback) {
+        console.log("Using fallback image from edge function:", data.imageUrl.substring(0, 50) + "...");
+        setIsFallbackImage(true);
+        sessionStorage.setItem("isFallbackImage", "true");
+        
+        toast({
+          title: "Using placeholder image",
+          description: data.error ? `Image generation service error: ${data.error}` : "Using placeholder image due to service issues.",
+          variant: "warning",
+        });
+      } else {
+        setIsFallbackImage(false);
+        sessionStorage.removeItem("isFallbackImage");
+        
+        toast({
+          title: "Image generated",
+          description: "Your social media image has been created",
+        });
+      }
+      
       // Store the generated image URL
       console.log("Image URL received:", data.imageUrl.substring(0, 50) + "...");
       setImageUrl(data.imageUrl);
       sessionStorage.setItem("generatedImage", data.imageUrl);
-      toast({
-        title: "Image generated",
-        description: "Your social media image has been created",
-      });
+      
       return data.imageUrl;
       
     } catch (error) {
@@ -107,7 +131,9 @@ export const useImageGeneration = () => {
       const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
       
       setImageUrl(placeholderImage);
+      setIsFallbackImage(true);
       sessionStorage.setItem("generatedImage", placeholderImage);
+      sessionStorage.setItem("isFallbackImage", "true");
       
       toast({
         title: "Using placeholder image",
@@ -125,5 +151,6 @@ export const useImageGeneration = () => {
     imageUrl,
     isGenerating,
     error,
+    isFallbackImage
   };
 };

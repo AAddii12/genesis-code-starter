@@ -2,6 +2,7 @@
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, ImageIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface PreviewImageProps {
   generatedImage: string | null;
@@ -9,6 +10,15 @@ interface PreviewImageProps {
 }
 
 export const PreviewImage = ({ generatedImage, isLoading = false }: PreviewImageProps) => {
+  const [isFallback, setIsFallback] = useState(false);
+  
+  useEffect(() => {
+    // Check both the current URL pattern and the sessionStorage flag
+    const isPlaceholder = generatedImage?.includes('placehold.co') || false;
+    const fallbackFlag = sessionStorage.getItem("isFallbackImage") === "true";
+    setIsFallback(isPlaceholder || fallbackFlag);
+  }, [generatedImage]);
+
   if (isLoading) {
     return (
       <AspectRatio ratio={1} className="w-full">
@@ -32,9 +42,6 @@ export const PreviewImage = ({ generatedImage, isLoading = false }: PreviewImage
     );
   }
 
-  // Check if it's a placeholder from placehold.co
-  const isPlaceholder = generatedImage.includes('placehold.co');
-
   return (
     <AspectRatio ratio={1} className="w-full">
       <div className="w-full h-full rounded-xl overflow-hidden relative">
@@ -43,11 +50,11 @@ export const PreviewImage = ({ generatedImage, isLoading = false }: PreviewImage
           alt="Generated social media content" 
           className="w-full h-full object-cover shadow-md transition-all duration-300 hover:shadow-lg" 
         />
-        {isPlaceholder && (
+        {isFallback && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs py-2 px-3 flex items-center gap-2">
             <ImageIcon size={14} />
             <span>
-              Using placeholder image - Image generation API needs configuration
+              Using placeholder image - Connection to image generation service failed
             </span>
           </div>
         )}

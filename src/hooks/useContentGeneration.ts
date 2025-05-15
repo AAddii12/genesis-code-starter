@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { UserProfile } from "@/types";
 import { toast } from "@/hooks/use-toast";
@@ -11,6 +10,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isFallbackImage, setIsFallbackImage] = useState(false);
   
   const { generateImage, isGenerating: isGeneratingImage } = useImageGeneration();
   const { generateText, isGenerating: isGeneratingText } = useTextGeneration();
@@ -27,6 +27,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     const savedImage = sessionStorage.getItem("generatedImage");
     if (savedImage) {
       setGeneratedImage(savedImage);
+      setIsFallbackImage(sessionStorage.getItem("isFallbackImage") === "true");
     }
   }, []);
   
@@ -57,6 +58,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
       
       if (imageResult) {
         setGeneratedImage(imageResult);
+        setIsFallbackImage(sessionStorage.getItem("isFallbackImage") === "true");
       }
       
       if (textResult) {
@@ -107,6 +109,7 @@ export const useContentGeneration = (userProfile: UserProfile | null) => {
     isLoading,
     generateContent,
     saveToMyContent,
-    downloadContent
+    downloadContent,
+    isFallbackImage
   };
 };
