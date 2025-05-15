@@ -4,6 +4,7 @@ import { GenerationControls } from "./GenerationControls";
 import { PreviewImage } from "./PreviewImage";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ContentPreviewCardProps {
   generatedImage: string | null;
@@ -36,7 +37,7 @@ export const ContentPreviewCard = ({
     <div className="bg-white rounded-xl shadow-lg p-6 mb-8 transition-all hover:shadow-xl">
       <div className="flex flex-col md:flex-row gap-8">
         <div className="flex-1">
-          <PreviewImage generatedImage={generatedImage} />
+          <PreviewImage generatedImage={generatedImage} isLoading={isGenerating} />
         </div>
         
         <div className="flex-1 flex flex-col">

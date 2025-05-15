@@ -24,11 +24,34 @@ export const useGeminiGeneration = () => {
       
       if (error) {
         console.error("Error from generate-gemini function:", error);
-        throw new Error(error.message || "Failed to call Gemini generation function");
+        
+        // Use a placeholder text if the function fails
+        const placeholderText = `🌟 [Gemini AI] Elevate your ${userProfile.businessType} experience with our innovative solutions tailored for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach will help you achieve your ${userProfile.businessGoal}. Visit our website today to learn more! #${userProfile.businessType.replace(/\s+/g, '')}Life #InnovationMatters`;
+        
+        setGeneratedText(placeholderText);
+        sessionStorage.setItem('generatedText', placeholderText);
+        
+        toast({
+          title: "Using placeholder text",
+          description: "Gemini service is not available. Using placeholder text for testing.",
+        });
+        
+        return placeholderText;
       }
       
       if (!data?.text) {
-        throw new Error("No text returned from Gemini generation function");
+        // Also use placeholder if no text returned
+        const placeholderText = `🌟 [Gemini AI] Elevate your ${userProfile.businessType} experience with our innovative solutions tailored for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach will help you achieve your ${userProfile.businessGoal}. Visit our website today to learn more! #${userProfile.businessType.replace(/\s+/g, '')}Life #InnovationMatters`;
+        
+        setGeneratedText(placeholderText);
+        sessionStorage.setItem('generatedText', placeholderText);
+        
+        toast({
+          title: "Using placeholder text",
+          description: "Gemini service is not available. Using placeholder text for testing.",
+        });
+        
+        return placeholderText;
       }
       
       // Save the generated text
@@ -43,12 +66,19 @@ export const useGeminiGeneration = () => {
       return text;
     } catch (error) {
       console.error('Error generating text with Gemini:', error);
+      
+      // Use a placeholder text in case of error
+      const placeholderText = `🌟 [Gemini AI] Elevate your ${userProfile.businessType} experience with our innovative solutions tailored for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach will help you achieve your ${userProfile.businessGoal}. Visit our website today to learn more! #${userProfile.businessType.replace(/\s+/g, '')}Life #InnovationMatters`;
+      
+      setGeneratedText(placeholderText);
+      sessionStorage.setItem('generatedText', placeholderText);
+      
       toast({
-        title: "Gemini caption generation failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
+        title: "Using placeholder text",
+        description: "Gemini service is not available. Using placeholder text for testing.",
       });
-      return null;
+      
+      return placeholderText;
     } finally {
       setIsGenerating(false);
     }

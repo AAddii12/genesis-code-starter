@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Toaster } from "@/components/ui/toaster";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ const Preview = () => {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] font-rubik relative rounded-none">
+      <Toaster />
       <BackgroundDecorations />
 
       <div className="max-w-4xl mx-auto relative z-10">

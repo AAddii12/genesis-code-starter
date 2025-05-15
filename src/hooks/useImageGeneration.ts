@@ -26,11 +26,32 @@ export const useImageGeneration = () => {
       
       if (error) {
         console.error("Error from generate-image function:", error);
-        throw new Error(error.message || "Failed to call image generation function");
+        
+        // For testing purposes, use a placeholder image if function fails
+        const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+        setImageUrl(placeholderImage);
+        sessionStorage.setItem("generatedImage", placeholderImage);
+        
+        toast({
+          title: "Using placeholder image",
+          description: "Could not connect to image generation service. Using a placeholder for testing.",
+        });
+        
+        return placeholderImage;
       }
       
       if (!data?.imageUrl) {
-        throw new Error("No image URL returned from generation function");
+        // Also use placeholder if no URL returned
+        const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+        setImageUrl(placeholderImage);
+        sessionStorage.setItem("generatedImage", placeholderImage);
+        
+        toast({
+          title: "Using placeholder image",
+          description: "Image generation service is not available. Using a placeholder for testing.",
+        });
+        
+        return placeholderImage;
       }
       
       // Store the generated image URL
@@ -45,12 +66,18 @@ export const useImageGeneration = () => {
     } catch (error) {
       console.error("Error generating image:", error);
       setError(error instanceof Error ? error.message : "Failed to generate image");
+      
+      // For testing, use a placeholder image
+      const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+      setImageUrl(placeholderImage);
+      sessionStorage.setItem("generatedImage", placeholderImage);
+      
       toast({
-        title: "Image generation failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
+        title: "Using placeholder image",
+        description: "Encountered an error during image generation. Using a placeholder for testing.",
       });
-      return null;
+      
+      return placeholderImage;
     } finally {
       setIsGenerating(false);
     }

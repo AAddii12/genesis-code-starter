@@ -24,11 +24,34 @@ export const useTextGeneration = () => {
       
       if (error) {
         console.error("Error from generate-text function:", error);
-        throw new Error(error.message || "Failed to call text generation function");
+        
+        // Use a placeholder text if the function fails
+        const placeholderText = `✨ Introducing our latest ${userProfile.businessType} collection designed specifically for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach ensures you'll stand out. Check out our website and follow us for more updates. #${userProfile.businessType.replace(/\s+/g, '')} #Trending`;
+        
+        setGeneratedText(placeholderText);
+        sessionStorage.setItem('generatedText', placeholderText);
+        
+        toast({
+          title: "Using placeholder text",
+          description: "Text generation service is not available. Using placeholder text for testing.",
+        });
+        
+        return placeholderText;
       }
       
       if (!data?.text) {
-        throw new Error("No text returned from generation function");
+        // Also use placeholder if no text returned
+        const placeholderText = `✨ Introducing our latest ${userProfile.businessType} collection designed specifically for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach ensures you'll stand out. Check out our website and follow us for more updates. #${userProfile.businessType.replace(/\s+/g, '')} #Trending`;
+        
+        setGeneratedText(placeholderText);
+        sessionStorage.setItem('generatedText', placeholderText);
+        
+        toast({
+          title: "Using placeholder text",
+          description: "Text generation service is not available. Using placeholder text for testing.",
+        });
+        
+        return placeholderText;
       }
       
       // Save the generated text
@@ -43,12 +66,19 @@ export const useTextGeneration = () => {
       return text;
     } catch (error) {
       console.error('Error generating text:', error);
+      
+      // Use a placeholder text in case of error
+      const placeholderText = `✨ Introducing our latest ${userProfile.businessType} collection designed specifically for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach ensures you'll stand out. Check out our website and follow us for more updates. #${userProfile.businessType.replace(/\s+/g, '')} #Trending`;
+      
+      setGeneratedText(placeholderText);
+      sessionStorage.setItem('generatedText', placeholderText);
+      
       toast({
-        title: "Caption generation failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
+        title: "Using placeholder text",
+        description: "Text generation service is not available. Using placeholder text for testing.",
       });
-      return null;
+      
+      return placeholderText;
     } finally {
       setIsGenerating(false);
     }
