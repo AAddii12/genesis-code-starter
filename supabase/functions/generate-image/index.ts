@@ -23,29 +23,39 @@ serve(async (req: Request) => {
       throw new Error("FAL_API_KEY not found in environment variables");
     }
 
+    // Log some debug information about the API key (without revealing the full key)
     console.log("Generating image with prompt:", prompt);
     console.log("FAL API key available:", !!falApiKey);
+    console.log("FAL API key length:", falApiKey.length);
+    console.log("FAL API key first 4 chars:", falApiKey.substring(0, 4));
+    console.log("FAL API key format check:", falApiKey.startsWith("fal_") ? "Valid prefix" : "Invalid prefix");
 
     try {
-      console.log("Sending request to FAL API using improved structure...");
-      // Using the recommended structure for the FAL request
+      console.log("Preparing to send request to FAL API...");
+      
+      // Log the full request structure (except the API key)
+      const requestBody = {
+        model: "fal-ai/flux/dev",
+        input: {
+          prompt: prompt,
+        },
+        logs: true,
+        stream: false
+      };
+      console.log("Request body:", JSON.stringify(requestBody));
+      
+      console.log("Sending request to FAL API endpoint: https://api.fal.ai/v1/subscriptions");
       const response = await fetch("https://api.fal.ai/v1/subscriptions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Key ${falApiKey}`,
         },
-        body: JSON.stringify({
-          model: "fal-ai/flux/dev", // Using the model as specified in the example
-          input: {
-            prompt: prompt,
-          },
-          logs: true,
-          stream: false // Get the full result at once instead of streaming
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       console.log("FAL API response status:", response.status);
+      console.log("FAL API response headers:", JSON.stringify(Object.fromEntries([...response.headers])));
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -54,14 +64,14 @@ serve(async (req: Request) => {
       }
 
       const data = await response.json();
-      console.log("FAL API response received successfully");
+      console.log("FAL API response data structure:", JSON.stringify(Object.keys(data)));
+      console.log("FAL API full response:", JSON.stringify(data).substring(0, 500) + "...");
 
       // Extract image URL from response
-      // The structure is different based on the example provided
       const imageUrl = data.data?.images?.[0] || data.data?.image;
       
       if (!imageUrl) {
-        console.error("No image URL in response:", JSON.stringify(data));
+        console.error("No image URL in response data structure:", JSON.stringify(data));
         throw new Error("Failed to generate image: No image URL in response");
       }
 
@@ -78,9 +88,50 @@ serve(async (req: Request) => {
       );
     } catch (falError) {
       console.error("FAL API request failed:", falError.message);
+      console.error("Error details:", falError.stack || "No stack trace available");
       
-      // If FAL API fails, we'll use a placeholder image based on the prompt
-      console.log("Using fallback image service:", falError.message);
+      // Try alternative API endpoint as a fallback
+      try {
+        console.log("Attempting with alternative FAL endpoint: https://api.fal.ai/text-to-image");
+        const altResponse = await fetch("https://api.fal.ai/text-to-image", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Key ${falApiKey}`,
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            model: "stabilityai/stable-diffusion-xl-base-1.0",
+            width: 1024,
+            height: 1024,
+            num_images: 1,
+          }),
+        });
+        
+        console.log("Alternative endpoint response status:", altResponse.status);
+        
+        if (!altResponse.ok) {
+          const altErrorText = await altResponse.text();
+          console.error("Alternative endpoint error:", altErrorText);
+          throw new Error("Both FAL endpoints failed");
+        }
+        
+        const altData = await altResponse.json();
+        const altImageUrl = altData.images?.[0]?.url;
+        
+        if (altImageUrl) {
+          console.log("Alternative endpoint succeeded:", altImageUrl.substring(0, 50) + "...");
+          return new Response(
+            JSON.stringify({ imageUrl: altImageUrl }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } catch (altError) {
+        console.error("Alternative endpoint also failed:", altError.message);
+      }
+      
+      // If both API endpoints fail, use a placeholder image based on the prompt
+      console.log("Using fallback image service due to API failures");
       
       // Create a fallback image URL with the prompt encoded in it
       const encodedPrompt = encodeURIComponent(prompt.substring(0, 100));
@@ -104,6 +155,7 @@ serve(async (req: Request) => {
     }
   } catch (error) {
     console.error("Error generating image:", error);
+    console.error("Error stack:", error.stack || "No stack trace available");
     
     return new Response(
       JSON.stringify({ error: error.message }),
