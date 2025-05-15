@@ -23,8 +23,10 @@ const Preview = () => {
     setCaption,
     userCredits,
     isGenerating,
+    isGeminiGenerating,
     isLoading,
     generateContent,
+    generateGeminiContent,
     saveToMyContent,
     downloadContent
   } = useContentGeneration(userProfile);
@@ -111,8 +113,10 @@ const Preview = () => {
           setCaption={setCaption}
           userCredits={userCredits}
           isGenerating={isGenerating}
+          isGeminiGenerating={isGeminiGenerating}
           isLoading={isLoading}
           generateContent={generateContent}
+          generateWithGemini={generateGeminiContent}
           downloadContent={downloadContent}
           saveToMyContent={saveToMyContent}
         />
