@@ -17,7 +17,7 @@ export const useTextGeneration = () => {
       // Generate the prompt with userProfile data
       const prompt = `Write a short marketing caption for a ${userProfile.businessType} business. The target audience is ${userProfile.targetAudience}. The goal is ${userProfile.businessGoal}. The style should be ${userProfile.styleVibe} and the color vibe is ${userProfile.colorPalette}. Include 1–2 hashtags and a clear call to action.`;
 
-      // Call the Supabase Edge Function
+      // Call the Supabase Edge Function (which now uses GOOGLE_STUDIO)
       const { data, error } = await supabase.functions.invoke('generate-text', {
         body: { prompt }
       });
