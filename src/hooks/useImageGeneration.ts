@@ -19,10 +19,14 @@ export const useImageGeneration = () => {
       // Prepare the prompt with userProfile data
       const prompt = `A modern and attractive social media image for a ${userProfile.businessType} brand, targeting ${userProfile.targetAudience}, in a ${userProfile.styleVibe} style with ${userProfile.colorPalette} colors. Instagram-ready and visually clean.`;
       
+      console.log("Calling generate-image function with prompt:", prompt.substring(0, 50) + "...");
+      
       // Call the Supabase Edge Function
       const { data, error } = await supabase.functions.invoke('generate-image', {
         body: { prompt }
       });
+      
+      console.log("Edge function response:", data ? "success" : "no data", error ? `error: ${error.message}` : "no error");
       
       if (error) {
         console.error("Error from generate-image function:", error);
@@ -46,13 +50,15 @@ export const useImageGeneration = () => {
         
         toast({
           title: "Using placeholder image",
-          description: "Could not connect to image generation service. Using a placeholder for testing.",
+          description: `Could not connect to image generation service: ${error.message}. Using a placeholder for testing.`,
         });
         
         return placeholderImage;
       }
       
       if (!data?.imageUrl) {
+        console.error("No image URL in response:", data);
+        
         // Also use enhanced placeholder if no URL returned
         let colorHex;
         switch (userProfile.colorPalette) {
@@ -71,13 +77,14 @@ export const useImageGeneration = () => {
         
         toast({
           title: "Using placeholder image",
-          description: "Image generation service is not available. Using a placeholder for testing.",
+          description: "Image generation service returned no data. Using a placeholder for testing.",
         });
         
         return placeholderImage;
       }
       
       // Store the generated image URL
+      console.log("Image URL received:", data.imageUrl.substring(0, 50) + "...");
       setImageUrl(data.imageUrl);
       sessionStorage.setItem("generatedImage", data.imageUrl);
       toast({
@@ -104,7 +111,7 @@ export const useImageGeneration = () => {
       
       toast({
         title: "Using placeholder image",
-        description: "Encountered an error during image generation. Using a placeholder for testing.",
+        description: `Encountered an error during image generation: ${error instanceof Error ? error.message : "Unknown error"}. Using a placeholder for testing.`,
       });
       
       return placeholderImage;

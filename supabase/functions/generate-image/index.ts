@@ -24,8 +24,10 @@ serve(async (req: Request) => {
     }
 
     console.log("Generating image with prompt:", prompt);
+    console.log("FAL API key available:", !!falApiKey);
 
-    // Call FAL API to generate image
+    // Call FAL API to generate image with detailed logging
+    console.log("Sending request to FAL API...");
     const response = await fetch("https://api.fal.ai/text-to-image", {
       method: "POST",
       headers: {
@@ -41,22 +43,32 @@ serve(async (req: Request) => {
       }),
     });
 
+    console.log("FAL API response status:", response.status);
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("FAL API error response:", errorData);
-      throw new Error(`FAL API error: ${response.status} ${JSON.stringify(errorData)}`);
+      const errorText = await response.text();
+      console.error("FAL API error response:", errorText);
+      try {
+        const errorData = JSON.parse(errorText);
+        console.error("Parsed error data:", errorData);
+        throw new Error(`FAL API error: ${response.status} ${JSON.stringify(errorData)}`);
+      } catch (parseError) {
+        throw new Error(`FAL API error: ${response.status} ${errorText}`);
+      }
     }
 
     const data = await response.json();
+    console.log("FAL API response received successfully");
 
     // Extract image URL from response
     const imageUrl = data.images?.[0]?.url;
     
     if (!imageUrl) {
+      console.error("No image URL in response:", data);
       throw new Error("Failed to generate image: No image URL in response");
     }
 
-    console.log("Image generated successfully");
+    console.log("Image generated successfully:", imageUrl.substring(0, 50) + "...");
 
     return new Response(
       JSON.stringify({ imageUrl }),

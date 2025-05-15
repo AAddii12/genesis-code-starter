@@ -1,7 +1,7 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ImageIcon } from "lucide-react";
 
 interface PreviewImageProps {
   generatedImage: string | null;
@@ -44,8 +44,11 @@ export const PreviewImage = ({ generatedImage, isLoading = false }: PreviewImage
           className="w-full h-full object-cover shadow-md transition-all duration-300 hover:shadow-lg" 
         />
         {isPlaceholder && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 text-center">
-            Using placeholder image - Set up API keys for real image generation
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs py-2 px-3 flex items-center gap-2">
+            <ImageIcon size={14} />
+            <span>
+              Using placeholder image - Image generation API needs configuration
+            </span>
           </div>
         )}
       </div>
