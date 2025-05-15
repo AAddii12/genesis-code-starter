@@ -4,7 +4,7 @@ import {
   Toast,
   ToastClose,
   ToastDescription,
-  ToastProvider as ToastPrimitive,
+  ToastProvider,
   ToastTitle,
   ToastViewport,
 } from "@/components/ui/toast"
@@ -13,8 +13,8 @@ export function Toaster() {
   const { toasts } = useToast()
 
   return (
-    <>
-      {toasts && toasts.map(function ({ id, title, description, action, ...props }) {
+    <ToastProvider>
+      {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
@@ -29,6 +29,6 @@ export function Toaster() {
         )
       })}
       <ToastViewport />
-    </>
+    </ToastProvider>
   )
 }

@@ -2,7 +2,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ToastProvider } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -16,6 +15,7 @@ import Navigation from "./components/Navigation";
 import PostIdea from "./pages/PostIdea";
 import { useState, useEffect } from "react";
 import { supabase } from "./integrations/supabase/client";
+import { ToastProvider } from "./hooks/use-toast";
 
 const queryClient = new QueryClient();
 
@@ -64,7 +64,6 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-          {/* Place Toaster components here at the app root level */}
           <Toaster />
           <Sonner />
         </TooltipProvider>
