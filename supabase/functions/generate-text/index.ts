@@ -15,22 +15,22 @@ serve(async (req: Request) => {
   try {
     const { prompt } = await req.json();
 
-    // Get Google Studio API key from environment variables instead of OpenAI
-    const googleStudioKey = Deno.env.get("GOOGLE_STUDIO");
+    // Get OpenAI API key from environment variables
+    const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
     
-    if (!googleStudioKey) {
-      console.error("GOOGLE_STUDIO environment variable not found");
-      throw new Error("GOOGLE_STUDIO not found in environment variables");
+    if (!openAIApiKey) {
+      console.error("OPENAI_API_KEY environment variable not found");
+      throw new Error("OPENAI_API_KEY not found in environment variables");
     }
 
     console.log("Generating text with prompt:", prompt);
 
-    // Call OpenAI API with the Google Studio key
+    // Call OpenAI API with the OpenAI key
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${googleStudioKey}`,
+        "Authorization": `Bearer ${openAIApiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
