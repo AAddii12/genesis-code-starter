@@ -18,14 +18,18 @@ export const useImageGeneration = () => {
     setIsFallbackImage(false);
     
     try {
-      // Prepare the prompt with userProfile data
-      const prompt = `A modern and attractive social media image for a ${userProfile.businessType} brand, targeting ${userProfile.targetAudience}, in a ${userProfile.styleVibe} style with ${userProfile.colorPalette} colors. Instagram-ready and visually clean.`;
+      console.log("Sending user profile data to generate-image function");
       
-      console.log("Calling generate-image function with prompt:", prompt.substring(0, 50) + "...");
-      
-      // Call the Supabase Edge Function
+      // Send only essential user profile data - no direct prompt or API endpoint references
       const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { prompt }
+        body: {
+          businessName: userProfile.businessName,
+          businessType: userProfile.businessType,
+          targetAudience: userProfile.targetAudience,
+          styleVibe: userProfile.styleVibe,
+          colorPalette: userProfile.colorPalette,
+          businessGoal: userProfile.businessGoal
+        }
       });
       
       console.log("Edge function response:", data ? "success" : "no data", error ? `error: ${error.message}` : "no error");

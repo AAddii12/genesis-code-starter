@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface ImageGenerationRequest {
+  businessName?: string;
+  businessType?: string;
+  targetAudience?: string;
+  styleVibe?: string;
+  colorPalette?: string;
+  businessGoal?: string;
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -13,7 +22,30 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    // Parse the user profile data instead of direct prompt
+    const userData: ImageGenerationRequest = await req.json();
+    
+    // Validate required parameters
+    if (!userData.businessType && !userData.businessName) {
+      throw new Error("Missing required business information");
+    }
+
+    // Sanitize inputs to prevent injection
+    const sanitize = (input: string | undefined): string => {
+      if (!input) return "";
+      // Basic sanitization - remove potential script tags and limit length
+      return input.replace(/<\/?[^>]+(>|$)/g, "").substring(0, 100);
+    };
+
+    const businessName = sanitize(userData.businessName);
+    const businessType = sanitize(userData.businessType);
+    const targetAudience = sanitize(userData.targetAudience);
+    const styleVibe = sanitize(userData.styleVibe);
+    const colorPalette = sanitize(userData.colorPalette);
+    const businessGoal = sanitize(userData.businessGoal);
+
+    // Construct the prompt server-side
+    const prompt = `A modern and attractive social media image for a ${businessType || businessName} brand, targeting ${targetAudience || "general audience"}, in a ${styleVibe || "professional"} style with ${colorPalette || "balanced"} colors. Instagram-ready and visually clean.${businessGoal ? ` Created with the goal of ${businessGoal}.` : ""}`;
 
     // Get FAL API key from environment variables
     const falApiKey = Deno.env.get("FAL_API_KEY");
@@ -23,7 +55,7 @@ serve(async (req: Request) => {
       throw new Error("FAL_API_KEY not found in environment variables");
     }
 
-    console.log("Generating image with prompt:", prompt);
+    console.log("Generating image with server-constructed prompt:", prompt.substring(0, 50) + "...");
     
     // Step 1: Submit the generation request
     const response = await fetch('https://api.fal.ai/v1/images/generations', {
@@ -109,101 +141,24 @@ serve(async (req: Request) => {
       throw new Error("Image generation timed out after maximum polling attempts");
     }
     
-    // If we don't have images or request_id, try alternative endpoint
-    console.log("Using alternative approach due to unexpected API response format");
+    // If we reach here, the API didn't give us a direct image URL or a request ID
+    console.error("Unexpected API response format:", JSON.stringify(result).substring(0, 200) + "...");
+    throw new Error("Unexpected API response format");
     
-    try {
-      const altResponse = await fetch('https://queue.fal.run/fal-ai/flux/dev', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Key ${falApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          image_model: 'fal-ai/flux/dev'
-        }),
-      });
-      
-      if (!altResponse.ok) {
-        const altErrorData = await altResponse.text();
-        console.error("Alternative endpoint failed:", altResponse.status, altErrorData);
-        throw new Error(`Alternative endpoint failed: ${altErrorData}`);
-      }
-      
-      const altResult = await altResponse.json();
-      console.log("Alternative endpoint response:", JSON.stringify(altResult).substring(0, 200) + "...");
-      
-      // Check if result is queued
-      if (altResult.status === "IN_QUEUE" && altResult.request_id) {
-        console.log("Request queued with ID:", altResult.request_id);
-        
-        // Poll for results (up to 10 attempts, waiting 1 second between each)
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts) {
-          attempts++;
-          console.log(`Polling queue, attempt ${attempts}/${maxAttempts}`);
-          
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-          
-          const queueResponse = await fetch(altResult.status_url, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Key ${falApiKey}`,
-              'Content-Type': 'application/json',
-            }
-          });
-          
-          if (!queueResponse.ok) {
-            console.warn(`Queue check failed on attempt ${attempts}:`, queueResponse.status);
-            continue;
-          }
-          
-          const queueResult = await queueResponse.json();
-          console.log(`Queue status (attempt ${attempts}):`, JSON.stringify(queueResult).substring(0, 100) + "...");
-          
-          if (queueResult.status === "COMPLETED" && queueResult.images && queueResult.images.length > 0) {
-            const imageUrl = queueResult.images[0];
-            console.log("Queue processing completed:", imageUrl.substring(0, 50) + "...");
-            
-            return new Response(
-              JSON.stringify({ imageUrl }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-          
-          if (queueResult.status === "FAILED") {
-            throw new Error(`Queue processing failed: ${queueResult.error || "Unknown error"}`);
-          }
-        }
-        
-        throw new Error("Queue processing timed out after maximum polling attempts");
-      }
-      
-      if (altResult.images && altResult.images.length > 0) {
-        const imageUrl = altResult.images[0];
-        console.log("Alternative endpoint returned image:", imageUrl.substring(0, 50) + "...");
-        
-        return new Response(
-          JSON.stringify({ imageUrl }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error("No images in alternative endpoint response");
-    } catch (altError) {
-      console.error("Alternative endpoint request failed:", altError.message);
-      throw altError; // Rethrow to be caught by outer catch
-    }
   } catch (error) {
     console.error("Error generating image:", error);
     
-    // Generate a fallback image URL based on the prompt
-    console.log("Using fallback image service due to API failures");
-    const encodedPrompt = encodeURIComponent((error.prompt || "image generation failed").substring(0, 100));
-    const fallbackImageUrl = `https://placehold.co/1024x1024/random/white?text=${encodedPrompt}`;
+    // Generate a fallback image URL based on the passed data
+    const userData: ImageGenerationRequest = await req.json().catch(() => ({}));
+    const businessText = encodeURIComponent((userData.businessName || userData.businessType || "image generation failed").substring(0, 100));
+    
+    let colorHex = "f5f0fa";
+    
+    if (userData.colorPalette === "soft pastels") colorHex = "f5e1e9";
+    else if (userData.colorPalette === "neon bold") colorHex = "00ff8c";
+    else if (userData.colorPalette === "monochrome") colorHex = "e0e0e0";
+    
+    const fallbackImageUrl = `https://placehold.co/1024x1024/${colorHex}/7e69ab?text=${businessText}`;
     
     console.log("Using fallback image URL:", fallbackImageUrl);
     
