@@ -87,9 +87,6 @@ serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: "flux",
-            prompt: prompt,
-            image_size: "1024x1024",
             image_model: 'fal-ai/flux/dev'
           }),
         });
