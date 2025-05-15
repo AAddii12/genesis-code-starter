@@ -27,8 +27,20 @@ export const useImageGeneration = () => {
       if (error) {
         console.error("Error from generate-image function:", error);
         
-        // For testing purposes, use a placeholder image if function fails
-        const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+        // Generate a more visual placeholder image based on user profile
+        let colorHex;
+        switch (userProfile.colorPalette) {
+          case "soft pastels": colorHex = "f5e1e9"; break;
+          case "neon bold": colorHex = "00ff8c"; break;
+          case "monochrome": colorHex = "e0e0e0"; break;
+          case "custom": 
+          default: colorHex = "f5f0fa"; break;
+        }
+        
+        // Create a better placeholder with user data embedded
+        const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
+        const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
+        
         setImageUrl(placeholderImage);
         sessionStorage.setItem("generatedImage", placeholderImage);
         
@@ -41,8 +53,19 @@ export const useImageGeneration = () => {
       }
       
       if (!data?.imageUrl) {
-        // Also use placeholder if no URL returned
-        const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+        // Also use enhanced placeholder if no URL returned
+        let colorHex;
+        switch (userProfile.colorPalette) {
+          case "soft pastels": colorHex = "f5e1e9"; break;
+          case "neon bold": colorHex = "00ff8c"; break;
+          case "monochrome": colorHex = "e0e0e0"; break;
+          case "custom": 
+          default: colorHex = "f5f0fa"; break;
+        }
+        
+        const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
+        const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
+        
         setImageUrl(placeholderImage);
         sessionStorage.setItem("generatedImage", placeholderImage);
         
@@ -67,8 +90,15 @@ export const useImageGeneration = () => {
       console.error("Error generating image:", error);
       setError(error instanceof Error ? error.message : "Failed to generate image");
       
-      // For testing, use a placeholder image
-      const placeholderImage = "https://placehold.co/600x600/f5f0fa/7e69ab?text=Generated+Content";
+      // For testing, use an enhanced placeholder image
+      let colorHex = "f5f0fa";
+      if (userProfile.colorPalette === "soft pastels") colorHex = "f5e1e9";
+      else if (userProfile.colorPalette === "neon bold") colorHex = "00ff8c";
+      else if (userProfile.colorPalette === "monochrome") colorHex = "e0e0e0";
+      
+      const businessText = encodeURIComponent(userProfile.businessName || userProfile.businessType);
+      const placeholderImage = `https://placehold.co/800x800/${colorHex}/7e69ab?text=${businessText}`;
+      
       setImageUrl(placeholderImage);
       sessionStorage.setItem("generatedImage", placeholderImage);
       

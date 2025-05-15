@@ -32,13 +32,23 @@ export const PreviewImage = ({ generatedImage, isLoading = false }: PreviewImage
     );
   }
 
+  // Check if it's a placeholder from placehold.co
+  const isPlaceholder = generatedImage.includes('placehold.co');
+
   return (
     <AspectRatio ratio={1} className="w-full">
-      <img 
-        src={generatedImage} 
-        alt="Generated social media content" 
-        className="w-full h-full rounded-xl object-cover shadow-md transition-all duration-300 hover:shadow-lg" 
-      />
+      <div className="w-full h-full rounded-xl overflow-hidden relative">
+        <img 
+          src={generatedImage} 
+          alt="Generated social media content" 
+          className="w-full h-full object-cover shadow-md transition-all duration-300 hover:shadow-lg" 
+        />
+        {isPlaceholder && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs py-1 px-2 text-center">
+            Using placeholder image - Set up API keys for real image generation
+          </div>
+        )}
+      </div>
     </AspectRatio>
   );
 };
