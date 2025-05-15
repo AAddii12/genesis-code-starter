@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toaster } from "@/components/ui/toaster";
+import { ToastProvider } from "@/hooks/use-toast";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -58,70 +58,75 @@ const Preview = () => {
 
   if (isPageLoading) {
     return (
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8]">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="flex-1">
-                <Skeleton className="w-full aspect-square" />
-              </div>
-              <div className="flex-1">
-                <Skeleton className="h-8 w-full mb-4" />
-                <Skeleton className="h-40 w-full mb-4" />
-                <div className="space-y-3 mt-auto">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
+      <ToastProvider>
+        <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8]">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-1">
+                  <Skeleton className="w-full aspect-square" />
+                </div>
+                <div className="flex-1">
+                  <Skeleton className="h-8 w-full mb-4" />
+                  <Skeleton className="h-40 w-full mb-4" />
+                  <div className="space-y-3 mt-auto">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </ToastProvider>
     );
   }
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#efe1f8] p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Profile not found</AlertTitle>
-          <AlertDescription>
-            You need to complete the onboarding process before viewing content.
-          </AlertDescription>
-        </Alert>
-        <Button onClick={() => navigate("/onboarding")}>
-          Go to Onboarding
-        </Button>
-      </div>
+      <ToastProvider>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#efe1f8] p-4">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Profile not found</AlertTitle>
+            <AlertDescription>
+              You need to complete the onboarding process before viewing content.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={() => navigate("/onboarding")}>
+            Go to Onboarding
+          </Button>
+        </div>
+      </ToastProvider>
     );
   }
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] font-rubik relative rounded-none">
-      <Toaster />
-      <BackgroundDecorations />
+    <ToastProvider>
+      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-[#efe1f8] font-rubik relative rounded-none">
+        <BackgroundDecorations />
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
-        
-        <ContentPreviewCard
-          generatedImage={generatedImage}
-          caption={caption}
-          setCaption={setCaption}
-          userCredits={userCredits}
-          isGenerating={isGenerating}
-          isLoading={isLoading}
-          generateContent={generateContent}
-          downloadContent={downloadContent}
-          saveToMyContent={saveToMyContent}
-        />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Content Preview</h1>
+          
+          <ContentPreviewCard
+            generatedImage={generatedImage}
+            caption={caption}
+            setCaption={setCaption}
+            userCredits={userCredits}
+            isGenerating={isGenerating}
+            isLoading={isLoading}
+            generateContent={generateContent}
+            downloadContent={downloadContent}
+            saveToMyContent={saveToMyContent}
+          />
 
-        <UserProfileSummary userProfile={userProfile} />
+          <UserProfileSummary userProfile={userProfile} />
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 };
 

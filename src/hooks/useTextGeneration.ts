@@ -25,7 +25,7 @@ export const useTextGeneration = () => {
       if (error) {
         console.error("Error from generate-text function:", error);
         
-        // Use a placeholder text if the function fails
+        // Create a placeholder text based on user profile
         const placeholderText = `✨ Introducing our latest ${userProfile.businessType} collection designed specifically for ${userProfile.targetAudience}! Our ${userProfile.styleVibe} approach ensures you'll stand out. Check out our website and follow us for more updates. #${userProfile.businessType.replace(/\s+/g, '')} #Trending`;
         
         setGeneratedText(placeholderText);
@@ -54,14 +54,23 @@ export const useTextGeneration = () => {
         return placeholderText;
       }
       
+      // Check if it's a fallback text from the server
+      if (data.isFallback) {
+        toast({
+          title: "Using generated fallback text",
+          description: data.error || "Text generation service encountered an issue",
+        });
+      } else {
+        toast({
+          title: "Caption generated",
+          description: "Your marketing caption is ready",
+        });
+      }
+      
       // Save the generated text
       const text = data.text;
       setGeneratedText(text);
       sessionStorage.setItem('generatedText', text);
-      toast({
-        title: "Caption generated",
-        description: "Your marketing caption is ready",
-      });
       
       return text;
     } catch (error) {

@@ -2,6 +2,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ToastProvider } from "@/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -47,24 +48,26 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* All routes are now accessible without authentication */}
-            <Route path="/" element={<><Navigation /><Index /></>} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/preview" element={<><Navigation /><Preview /></>} />
-            <Route path="/my-content" element={<><Navigation /><MyContent /></>} />
-            <Route path="/pricing" element={<><Navigation /><Pricing /></>} />
-            <Route path="/about" element={<><Navigation /><About /></>} />
-            <Route path="/post-idea" element={<><Navigation /><PostIdea /></>} />
-            <Route path="/login" element={<><Navigation /><Index /></>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ToastProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* All routes are now accessible without authentication */}
+              <Route path="/" element={<><Navigation /><Index /></>} />
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/preview" element={<><Navigation /><Preview /></>} />
+              <Route path="/my-content" element={<><Navigation /><MyContent /></>} />
+              <Route path="/pricing" element={<><Navigation /><Pricing /></>} />
+              <Route path="/about" element={<><Navigation /><About /></>} />
+              <Route path="/post-idea" element={<><Navigation /><PostIdea /></>} />
+              <Route path="/login" element={<><Navigation /><Index /></>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 };
