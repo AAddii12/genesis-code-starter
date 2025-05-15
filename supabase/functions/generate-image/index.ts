@@ -64,20 +64,24 @@ serve(async (req: Request) => {
       aspectRatio = "16:9"; // Landscape for broader content
     }
     
-    // Call the Stability API for image generation
+    // Create a FormData object to send multipart/form-data request
+    const formData = new FormData();
+    formData.append("prompt", prompt);
+    formData.append("aspect_ratio", aspectRatio);
+    formData.append("output_format", "png");
+    formData.append("seed", Math.floor(Math.random() * 1000000).toString()); // Random seed for variety
+    
+    console.log("Sending multipart/form-data request to Stability API...");
+    
+    // Call the Stability API for image generation with multipart/form-data
     const response = await fetch("https://api.stability.ai/v2beta/stable-image/generate/ultra", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${stabilityApiKey}`,
-        "Content-Type": "application/json",
-        "Accept": "application/json"
+        // Don't set Content-Type header here - it will be set automatically with boundary when using FormData
+        "Accept": "image/*"
       },
-      body: JSON.stringify({
-        prompt,
-        aspect_ratio: aspectRatio,
-        output_format: "png",
-        seed: Math.floor(Math.random() * 1000000) // Random seed for variety
-      })
+      body: formData
     });
     
     if (!response.ok) {
@@ -86,24 +90,39 @@ serve(async (req: Request) => {
       throw new Error(`Stability API error: ${response.status} ${errorText}`);
     }
     
-    const result = await response.json();
-    console.log("Stability API response received:", JSON.stringify(result).substring(0, 200) + "...");
+    console.log("Response status:", response.status);
+    const contentType = response.headers.get("Content-Type");
+    console.log("Response content type:", contentType);
     
-    // Check if we have images in the response
-    if (result.image_url || (result.artifacts && result.artifacts.length > 0)) {
-      // Extract image URL - handle both possible response formats
-      const imageUrl = result.image_url || result.artifacts[0].url || result.artifacts[0].base64;
-      console.log("Image generated successfully:", imageUrl.substring(0, 50) + "...");
+    // Handle image response - could be binary or JSON depending on the API
+    let imageUrl;
+    
+    if (contentType?.includes("application/json")) {
+      // Handle JSON response format
+      const result = await response.json();
+      console.log("API returned JSON response:", JSON.stringify(result).substring(0, 200) + "...");
       
-      return new Response(
-        JSON.stringify({ imageUrl }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (result.image_url || (result.artifacts && result.artifacts.length > 0)) {
+        imageUrl = result.image_url || result.artifacts[0].url || result.artifacts[0].base64;
+      } else {
+        throw new Error("No image URL in JSON response");
+      }
+    } else if (contentType?.includes("image/")) {
+      // Handle direct image response
+      const imageBlob = await response.blob();
+      const buffer = await imageBlob.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+      imageUrl = `data:${contentType};base64,${base64}`;
+    } else {
+      throw new Error(`Unexpected response content type: ${contentType}`);
     }
     
-    // If we reach here, the API didn't give us what we expected
-    console.error("Unexpected API response format:", JSON.stringify(result).substring(0, 200) + "...");
-    throw new Error("Unexpected API response format");
+    console.log("Image URL generated successfully:", imageUrl?.substring(0, 50) + "...");
+    
+    return new Response(
+      JSON.stringify({ imageUrl }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
     
   } catch (error) {
     console.error("Error generating image:", error);
